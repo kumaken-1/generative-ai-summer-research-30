@@ -162,6 +162,20 @@ button:hover {
   background: var(--text-area);
 }
 
+.progress-meter {
+  width: 100%;
+  height: 0.85rem;
+  accent-color: var(--text-area);
+}
+
+.progress-count {
+  font-size: 1.1rem;
+}
+
+.progress-count strong {
+  font-size: 1.5rem;
+}
+
 .badge-list,
 .filter-list {
   display: flex;
@@ -169,6 +183,17 @@ button:hover {
   gap: 0.75rem;
   padding: 0;
   list-style: none;
+}
+
+.badge {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #bdccd2;
+  border-radius: 999px;
+  background: #f5f9f8;
+}
+
+.badge--empty {
+  color: var(--muted);
 }
 
 .filter-bar {
@@ -222,6 +247,40 @@ button:hover {
   border-block-start: 6px solid var(--thinking-area);
 }
 
+.quest-card__top,
+.quest-status,
+.detail-actions,
+.route-switch,
+.related-quests {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.quest-card__top {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quest-status {
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.status {
+  color: var(--muted);
+}
+
+.status--complete,
+.status--favorite {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.quest-open {
+  width: 100%;
+}
+
 .area-label {
   display: inline-flex;
   align-items: center;
@@ -267,6 +326,63 @@ button:hover {
   padding: 1rem;
   border-inline-start: 4px solid var(--text-area);
   background: #f5f9f8;
+}
+
+.detail-section {
+  margin-block: 1.5rem;
+}
+
+.detail-section h3 {
+  margin-block-end: 0.35rem;
+}
+
+.detail-section p {
+  margin-block-end: 0.75rem;
+}
+
+.route-switch button[aria-pressed="true"],
+.detail-actions button[aria-pressed="true"] {
+  color: #fff;
+  background: var(--ink);
+}
+
+.reflection {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: #f8f3e9;
+}
+
+.fact-check {
+  padding: 1rem;
+  border: 1px solid #d9c69d;
+  border-radius: 0.75rem;
+  background: #fffaf0;
+}
+
+.material-note {
+  margin-block: 1.5rem;
+  padding: 1rem;
+  border: 2px solid #b8c8ce;
+  border-radius: 0.75rem;
+}
+
+.material-note p,
+.material-note ul {
+  margin-block-end: 0;
+}
+
+.detail-actions {
+  padding-block: 1rem;
+  border-block: 1px solid #dce2e7;
+}
+
+.related-quests {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.related-quests h3 {
+  width: 100%;
 }
 
 .screen-reader-only {
