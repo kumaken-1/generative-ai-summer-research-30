@@ -40,7 +40,7 @@ test("HTML exposes the complete Japanese page structure before JavaScript runs",
   assert.match(html, /<main\s+id="main"/i);
   assert.equal(
     packageJson.scripts.test,
-    "node --test tests/state.test.mjs tests/view-model.test.mjs tests/quests.test.mjs tests/powers.test.mjs tests/structure.test.mjs tests/print-page.test.mjs tests/docs.test.mjs tests/workflow.test.mjs",
+    "node --test tests/state.test.mjs tests/view-model.test.mjs tests/quests.test.mjs tests/powers.test.mjs tests/power-images.test.mjs tests/structure.test.mjs tests/print-page.test.mjs tests/docs.test.mjs tests/workflow.test.mjs",
   );
   assert.equal(packageJson.scripts["test:smoke"], "node --test tests/smoke.test.mjs");
   assert.equal(packageJson.scripts["test:all"], "npm test && npm run test:smoke");
