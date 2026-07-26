@@ -1,6 +1,39 @@
 const schoolPrompt = (prompt) =>
   `個人情報を含まない架空・公開の内容で試します。${prompt}`;
 
+const questPowers = {
+  1: ["dialogue", "agency"],
+  2: ["instruction", "dialogue"],
+  3: ["finishing", "instruction"],
+  4: ["finishing", "instruction"],
+  5: ["dialogue", "instruction"],
+  6: ["instruction", "finishing"],
+  7: ["instruction", "dialogue"],
+  8: ["dialogue", "instruction"],
+  9: ["delegation", "instruction"],
+  10: ["delegation", "dialogue"],
+  11: ["delegation", "verification"],
+  12: ["delegation", "safety"],
+  13: ["safety", "verification"],
+  14: ["delegation", "agency"],
+  15: ["verification", "safety"],
+  16: ["instruction", "safety"],
+  17: ["verification", "safety"],
+  18: ["finishing", "instruction"],
+  19: ["agency", "dialogue"],
+  20: ["finishing", "agency"],
+  21: ["dialogue", "agency"],
+  22: ["instruction", "dialogue"],
+  23: ["dialogue", "agency"],
+  24: ["agency", "finishing"],
+  25: ["agency", "dialogue"],
+  26: ["verification", "safety"],
+  27: ["verification", "safety"],
+  28: ["finishing", "agency"],
+  29: ["delegation", "instruction"],
+  30: ["delegation", "agency"],
+};
+
 const quest = ({
   id,
   area,
@@ -12,22 +45,27 @@ const quest = ({
   reflectPrompt,
   factCheck = { required: false, method: "" },
   related,
-}) => ({
-  id,
-  area,
-  title,
-  ability,
-  inputMode,
-  daily,
-  school: {
-    ...school,
-    firstPrompt: schoolPrompt(school.firstPrompt),
-  },
-  reflectPrompt,
-  safety: "児童・保護者・職員の名前や、個人が分かる情報、学校の機密情報は入力しません。",
-  factCheck,
-  related,
-});
+}) => {
+  const [primaryPower, supportingPower] = questPowers[id];
+  return {
+    id,
+    area,
+    title,
+    ability,
+    inputMode,
+    daily,
+    school: {
+      ...school,
+      firstPrompt: schoolPrompt(school.firstPrompt),
+    },
+    reflectPrompt,
+    safety: "児童・保護者・職員の名前や、個人が分かる情報、学校の機密情報は入力しません。",
+    factCheck,
+    related,
+    primaryPower,
+    supportingPower,
+  };
+};
 
 export const quests = [
   quest({

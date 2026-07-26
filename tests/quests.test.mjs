@@ -14,6 +14,8 @@ const requiredKeys = [
   "safety",
   "factCheck",
   "related",
+  "primaryPower",
+  "supportingPower",
 ];
 
 const expectedTitles = [
