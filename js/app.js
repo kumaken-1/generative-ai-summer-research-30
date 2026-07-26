@@ -29,6 +29,7 @@ const closeButton = document.querySelector("#close-dialog");
 const toast = document.querySelector("#toast");
 const dialogToast = document.querySelector("#dialog-toast");
 const storageWarning = document.querySelector("#storage-warning");
+const resetControls = document.querySelector(".reset-controls");
 const resetButton = document.querySelector("#reset-progress");
 const resetConfirmation = document.querySelector("#reset-confirmation");
 const confirmResetButton = document.querySelector("#confirm-reset");
@@ -442,6 +443,7 @@ try {
 } catch {
   showStorageWarning();
 }
+resetControls.hidden = false;
 renderProgress();
 renderFilters();
 renderCards();

@@ -21,6 +21,7 @@ function findRuleContainingSelector(css, selector) {
 
 test("HTML exposes the complete Japanese page structure before JavaScript runs", async () => {
   const html = await read("../index.html");
+  const packageJson = JSON.parse(await read("../package.json"));
 
   assert.match(html, /<html\s+lang="ja"/i);
   assert.match(html, /<meta\s+charset="utf-8"/i);
@@ -37,6 +38,14 @@ test("HTML exposes the complete Japanese page structure before JavaScript runs",
   assert.match(html, /30の『ちょっと試してみる』から、気になるものを選ぼう。/);
   assert.match(html, /ちょっと聞く。もう一度頼む。最後は自分で決める。/);
   assert.match(html, /<main\s+id="main"/i);
+  assert.equal(
+    packageJson.scripts.test,
+    "node --test tests/state.test.mjs tests/view-model.test.mjs tests/quests.test.mjs tests/structure.test.mjs tests/print-page.test.mjs",
+  );
+  assert.equal(packageJson.scripts["test:smoke"], "node --test tests/smoke.test.mjs");
+  assert.equal(packageJson.scripts["test:all"], "npm test && npm run test:smoke");
+  assert.equal(packageJson.scripts["test:content"], "node --test tests/quests.test.mjs");
+  assert.equal(packageJson.scripts["test:state"], "node --test tests/state.test.mjs");
 });
 
 test("HTML provides accessible render targets for progress, filters, quests, and feedback", async () => {
@@ -53,6 +62,7 @@ test("HTML provides accessible render targets for progress, filters, quests, and
     html,
     /この端末では進み具合を保存できません。[\s\S]*印刷用マップをご利用ください。/,
   );
+  assert.match(html, /<div\s+class="reset-controls"\s+hidden>/i);
   assert.match(html, /<button\s+id="reset-progress"[^>]*>進み具合をリセット<\/button>/i);
   assert.match(
     html,
@@ -95,6 +105,7 @@ test("app keeps interactions usable when storage fails and offers reset confirma
   assert.match(app, /clearProgress/);
   assert.match(app, /進み具合をリセットしました/);
   assert.match(app, /resetConfirmation\.hidden\s*=\s*false/);
+  assert.match(app, /resetControls\.hidden\s*=\s*false/);
   assert.match(app, /progress\s*=\s*\{\s*completed:\s*\[\],\s*favorites:\s*\[\]\s*\}/);
   assert.match(
     app,
