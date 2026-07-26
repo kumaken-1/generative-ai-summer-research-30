@@ -104,6 +104,7 @@ const CONTENT_TYPES = {
       assert.equal(await page.locator("#quest-dialog[open]").count(), 1);
       assert.match(await page.locator("#quest-detail").innerText(), /クエスト 12/);
       await page.getByRole("button", { name: "閉じる" }).click();
+      await page.waitForFunction(() => window.location.hash === "");
       assert.equal(new URL(page.url()).hash, "");
     } finally {
       await browser.close();
