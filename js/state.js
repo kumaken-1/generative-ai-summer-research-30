@@ -1,5 +1,13 @@
 export const STORAGE_KEY = "ai-summer-research-30-progress-v1";
 
+export function getLocalStorageSafely(scope = globalThis) {
+  try {
+    return scope.localStorage ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function normalizeIds(value) {
   if (!Array.isArray(value)) {
     return [];

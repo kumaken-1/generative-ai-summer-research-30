@@ -6,12 +6,27 @@ import {
   checkStorageAvailability,
   clearProgress,
   earnedBadges,
+  getLocalStorageSafely,
   loadProgress,
   normalizeProgress,
   saveProgress,
   toggleCompleted,
   toggleFavorite,
 } from "../js/state.js";
+
+test("getLocalStorageSafely returns storage or null without propagating getter errors", () => {
+  const storage = { getItem: () => null };
+  assert.equal(getLocalStorageSafely({ localStorage: storage }), storage);
+  assert.equal(getLocalStorageSafely({ localStorage: null }), null);
+  assert.equal(
+    getLocalStorageSafely({
+      get localStorage() {
+        throw new DOMException("blocked", "SecurityError");
+      },
+    }),
+    null,
+  );
+});
 
 test("normalizeProgress returns empty progress for null and broken field types", () => {
   assert.deepEqual(normalizeProgress(null), { completed: [], favorites: [] });

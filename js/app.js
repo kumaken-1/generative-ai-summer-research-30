@@ -3,6 +3,7 @@ import {
   checkStorageAvailability,
   clearProgress,
   earnedBadges,
+  getLocalStorageSafely,
   loadProgress,
   saveProgress,
   toggleCompleted,
@@ -35,8 +36,9 @@ const resetConfirmation = document.querySelector("#reset-confirmation");
 const confirmResetButton = document.querySelector("#confirm-reset");
 const cancelResetButton = document.querySelector("#cancel-reset");
 
-let progress = loadProgress();
-let storageAvailable = true;
+const storage = getLocalStorageSafely();
+let progress = storage ? loadProgress(storage) : { completed: [], favorites: [] };
+let storageAvailable = Boolean(storage);
 let activeFilter = "all";
 let activeQuestId = null;
 let activeRoute = "daily";
@@ -84,7 +86,7 @@ function showStorageWarning() {
 function persist() {
   if (!storageAvailable) return;
   try {
-    saveProgress(progress);
+    saveProgress(progress, storage);
   } catch {
     showStorageWarning();
   }
@@ -375,12 +377,14 @@ function closeResetConfirmation() {
 }
 
 function resetProgress() {
-  let cleared = true;
-  try {
-    clearProgress();
-  } catch {
-    cleared = false;
-    showStorageWarning();
+  let cleared = false;
+  if (storage) {
+    try {
+      clearProgress(storage);
+      cleared = true;
+    } catch {
+      showStorageWarning();
+    }
   }
   progress = { completed: [], favorites: [] };
   renderProgress();
@@ -438,10 +442,14 @@ window.addEventListener("hashchange", () => {
   }
 });
 
-try {
-  checkStorageAvailability();
-} catch {
+if (!storage) {
   showStorageWarning();
+} else {
+  try {
+    checkStorageAvailability(storage);
+  } catch {
+    showStorageWarning();
+  }
 }
 resetControls.hidden = false;
 renderProgress();

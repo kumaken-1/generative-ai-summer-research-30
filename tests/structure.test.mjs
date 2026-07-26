@@ -101,6 +101,12 @@ test("app keeps interactions usable when storage fails and offers reset confirma
   const app = await read("../js/app.js");
 
   assert.match(app, /checkStorageAvailability/);
+  assert.match(app, /getLocalStorageSafely/);
+  assert.match(app, /const storage = getLocalStorageSafely\(\)/);
+  assert.match(app, /storage\s*\?\s*loadProgress\(storage\)/);
+  assert.match(app, /saveProgress\(progress,\s*storage\)/);
+  assert.match(app, /clearProgress\(storage\)/);
+  assert.match(app, /checkStorageAvailability\(storage\)/);
   assert.match(app, /storageWarning\.hidden\s*=\s*false/);
   assert.match(app, /clearProgress/);
   assert.match(app, /進み具合をリセットしました/);
