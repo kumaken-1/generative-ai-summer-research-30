@@ -4,6 +4,21 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
+function findRuleContainingSelector(css, selector) {
+  const rulePattern = /([^{}]+)\{([^{}]*)\}/g;
+  for (const match of css.matchAll(rulePattern)) {
+    const selectors = match[1].split(",").map((item) => item.trim());
+    if (selectors.includes(selector)) {
+      return {
+        selectorText: selectors.join(", "),
+        selectors,
+        declarations: match[2],
+      };
+    }
+  }
+  assert.fail(`missing CSS rule for selector: ${selector}`);
+}
+
 test("HTML exposes the complete Japanese page structure before JavaScript runs", async () => {
   const html = await read("../index.html");
 
@@ -51,7 +66,7 @@ test("screen styles define the design tokens, grid, focus, and responsive behavi
     "--paper: #fffdf7",
     "--surface: #fff",
     "--text-area: #2d6a73",
-    "--media-area: #b65f36",
+    "--media-area: #b45d34",
     "--thinking-area: #6b5aa6",
     "--focus: #005fcc",
     "--radius: 18px",
@@ -75,10 +90,17 @@ test("print stylesheet formats an A4 three-column checklist and hides controls",
   const css = await read("../css/print.css");
 
   assert.match(css, /@page\s*\{[^}]*size:\s*A4\s+portrait[^}]*margin:\s*12mm/s);
-  assert.match(css, /(?:button|nav)[\s\S]*display:\s*none\s*!important/);
-  for (const selector of ["button", "nav", "dialog", "#toast"]) {
-    assert.ok(css.includes(selector), `print controls must include ${selector}`);
+  const hiddenSelectors = ["button", "nav", "dialog", "#toast"];
+  const hiddenRule = findRuleContainingSelector(css, hiddenSelectors[0]);
+  for (const selector of hiddenSelectors) {
+    const selectorRule = findRuleContainingSelector(css, selector);
+    assert.equal(
+      selectorRule.selectorText,
+      hiddenRule.selectorText,
+      `${selector} must share the print-control hiding rule`,
+    );
   }
+  assert.match(hiddenRule.declarations, /display:\s*none\s*!important/);
   assert.match(css, /\.quest-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*1fr\)/s);
   assert.match(css, /\.quest-card\s*\{[^}]*break-inside:\s*avoid/s);
   assert.match(css, /font-size:\s*(?:9pt|1[0-9](?:\.\d+)?pt)/);
