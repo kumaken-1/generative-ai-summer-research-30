@@ -1,0 +1,353 @@
+:root {
+  --ink: #203047;
+  --muted: #5c6878;
+  --paper: #fffdf7;
+  --surface: #fff;
+  --text-area: #2d6a73;
+  --media-area: #b65f36;
+  --thinking-area: #6b5aa6;
+  --focus: #005fcc;
+  --radius: 18px;
+  --shadow: 0 8px 24px rgb(32 48 71 / 10%);
+  --content-width: 1120px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color: var(--ink);
+  background: var(--paper);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  line-height: 1.7;
+  font-family: "BIZ UDPGothic", "Yu Gothic", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 10% 0%, rgb(45 106 115 / 9%), transparent 30rem),
+    var(--paper);
+}
+
+h1,
+h2,
+p {
+  margin-block-start: 0;
+}
+
+h1,
+h2 {
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+button {
+  min-height: 44px;
+  padding: 0.65rem 1rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+button:hover {
+  background: #f3f7f7;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+:target,
+:focus {
+  scroll-margin-block: 5rem;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  inset-block-start: 0.5rem;
+  inset-inline-start: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  color: #fff;
+  background: var(--focus);
+  transform: translateY(-150%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.hero {
+  padding: clamp(3rem, 8vw, 6rem) max(1.5rem, calc((100% - var(--content-width)) / 2));
+  color: #fff;
+  background: linear-gradient(130deg, #234f58, var(--text-area));
+}
+
+.hero__inner {
+  max-width: 780px;
+}
+
+.eyebrow {
+  margin-block-end: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.hero h1 {
+  margin-block-end: 1rem;
+  font-size: clamp(2rem, 5vw, 4rem);
+}
+
+.hero__lead {
+  margin-block-end: 1.25rem;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  font-weight: 700;
+}
+
+.hero__tagline {
+  display: inline-block;
+  margin-block-end: 0;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 12%);
+}
+
+.site-main {
+  width: min(calc(100% - 3rem), var(--content-width));
+  margin-inline: auto;
+  padding-block: clamp(2rem, 5vw, 4rem) 5rem;
+}
+
+.progress-panel {
+  margin-block-end: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid #dce6e5;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.progress-panel h2,
+.section-heading h2 {
+  margin-block-end: 0.5rem;
+}
+
+#progress > :last-child,
+.filter-bar > :last-child {
+  margin-block-end: 0;
+}
+
+.progress-track {
+  overflow: hidden;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: #e6ebed;
+}
+
+.progress-value {
+  height: 100%;
+  background: var(--text-area);
+}
+
+.badge-list,
+.filter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.filter-bar {
+  margin-block-end: 3rem;
+  padding: 1rem;
+  border-block: 1px solid #dce2e7;
+}
+
+.filter-button[aria-pressed="true"] {
+  color: #fff;
+  background: var(--ink);
+}
+
+.quest-section {
+  min-width: 0;
+}
+
+.section-heading {
+  margin-block-end: 1.25rem;
+}
+
+.quest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.loading-note {
+  grid-column: 1 / -1;
+  color: var(--muted);
+}
+
+.quest-card {
+  min-height: 180px;
+  padding: 1rem;
+  border: 1px solid #d8e0e5;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.quest-card[data-area="text"] {
+  border-block-start: 6px solid var(--text-area);
+}
+
+.quest-card[data-area="media"] {
+  border-block-start: 6px solid var(--media-area);
+}
+
+.quest-card[data-area="thinking"] {
+  border-block-start: 6px solid var(--thinking-area);
+}
+
+.area-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.area-label::before {
+  content: "●";
+  font-size: 0.8em;
+}
+
+.area-label--text {
+  color: var(--text-area);
+}
+
+.area-label--media {
+  color: var(--media-area);
+}
+
+.area-label--thinking {
+  color: var(--thinking-area);
+}
+
+.quest-number {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.quest-title {
+  margin-block: 0.5rem;
+  font-size: 1.15rem;
+}
+
+.quest-meta,
+.prompt-label,
+.safety-note {
+  color: var(--muted);
+}
+
+.prompt-box,
+.safety-note {
+  padding: 1rem;
+  border-inline-start: 4px solid var(--text-area);
+  background: #f5f9f8;
+}
+
+.screen-reader-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+dialog {
+  width: min(720px, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: clamp(1.25rem, 3vw, 2rem);
+  overflow: auto;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgb(20 31 45 / 35%);
+}
+
+dialog::backdrop {
+  background: rgb(20 31 45 / 68%);
+}
+
+.dialog-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 1rem;
+}
+
+.dialog-header h2 {
+  margin-block-end: 0;
+}
+
+#toast {
+  position: fixed;
+  z-index: 20;
+  inset-inline: 1rem;
+  inset-block-end: 1rem;
+  width: fit-content;
+  max-width: min(32rem, calc(100% - 2rem));
+  margin-inline: auto;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  color: #fff;
+  background: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+#toast:empty {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .hero,
+  .site-main {
+    width: 100%;
+    padding-inline: 1rem;
+  }
+
+  .dialog-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,100 @@
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
+html,
+body {
+  color: #000;
+  background: #fff;
+  font-size: 10pt;
+}
+
+body {
+  line-height: 1.45;
+}
+
+.hero {
+  padding: 0 0 5mm;
+  border-block-end: 1pt solid #555;
+  color: #000;
+  background: none;
+}
+
+.hero h1 {
+  margin: 0 0 2mm;
+  font-size: 20pt;
+}
+
+.hero__lead {
+  margin: 0;
+  font-size: 10pt;
+}
+
+.hero__tagline,
+.hero .eyebrow,
+.skip-link,
+button,
+nav,
+dialog,
+#toast {
+  display: none !important;
+}
+
+.site-main {
+  width: 100%;
+  padding: 5mm 0 0;
+}
+
+.progress-panel {
+  margin: 0 0 4mm;
+  padding: 3mm;
+  border: 1pt solid #777;
+  box-shadow: none;
+}
+
+.quest-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3mm;
+}
+
+.quest-card {
+  position: relative;
+  min-height: 35mm;
+  padding: 4mm;
+  padding-block-start: 9mm;
+  break-inside: avoid;
+  border: 1pt solid #555;
+  border-radius: 2mm;
+  box-shadow: none;
+  font-size: 9pt;
+}
+
+.quest-card::before {
+  content: "□ できた";
+  position: absolute;
+  inset-block-start: 2mm;
+  inset-inline-end: 3mm;
+  font-weight: 700;
+}
+
+.quest-number,
+.quest-title {
+  font-weight: 700;
+}
+
+.quest-title {
+  font-size: 10pt;
+}
+
+.prompt-box,
+.safety-note {
+  padding: 2mm;
+  border: 0;
+  background: none;
+}
+
+* {
+  print-color-adjust: economy;
+}
