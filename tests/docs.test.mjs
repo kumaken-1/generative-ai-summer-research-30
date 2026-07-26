@@ -33,6 +33,27 @@ test("README explains the public course, safety, operation, and contribution rul
   }
 });
 
+test("README explains the beginner flow, mobile support, points, and image update policy", async () => {
+  const readme = await read("../README.md");
+
+  for (const phrase of [
+    "1. 気になるクエストを選ぶ",
+    "2. 文章を生成AIに入力する",
+    "3. AIの回答を読んで、続けて文章を入力する",
+    "携帯",
+    "0/60",
+    "獲得ポイント/総ポイント",
+    "能力評価ではなく",
+    "体験回数",
+    "seven-powers-720.webp",
+    "seven-powers-1055.webp",
+    "元画像",
+    "公開リポジトリに含めません",
+  ]) {
+    assert.ok(readme.includes(phrase), `README is missing: ${phrase}`);
+  }
+});
+
 test("dual license files clearly cover code and content", async () => {
   const codeLicense = await read("../LICENSE-CODE");
   const contentLicense = await read("../LICENSE-CONTENT");

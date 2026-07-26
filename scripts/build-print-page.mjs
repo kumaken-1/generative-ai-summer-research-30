@@ -3,6 +3,11 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
 import { quests } from "../js/quests.js";
+import { POWER_DEFINITIONS } from "../js/powers.js";
+
+const powerNames = new Map(
+  POWER_DEFINITIONS.map(({ id, name }) => [id, name]),
+);
 
 export function escapeHtml(value) {
   return String(value)
@@ -16,9 +21,9 @@ export function escapeHtml(value) {
 function routeMarkup(label, route) {
   return `        <section class="print-route">
           <h3>${escapeHtml(label)}</h3>
-          <p><strong>こんなとき：</strong>${escapeHtml(route.situation)}</p>
-          <p><strong>最初の一言：</strong>${escapeHtml(route.firstPrompt)}</p>
-          <p><strong>自分の考えを、もう一言：</strong>${escapeHtml(route.followUp)}</p>
+          <p><strong>生成AIで使うもの：</strong>${escapeHtml(route.situation)}</p>
+          <p><strong>まず、この文章を生成AIに入力してみよう：</strong>${escapeHtml(route.firstPrompt)}</p>
+          <p><strong>AIの回答を読んだら、続けてこの文章を入力しよう：</strong>${escapeHtml(route.followUp)}</p>
         </section>`;
 }
 
@@ -32,6 +37,8 @@ function questMarkup(quest) {
         <p class="quest-number">クエスト ${quest.id}</p>
         <h2 class="quest-title">${escapeHtml(quest.title)}</h2>
         <p><strong>身につくこと：</strong>${escapeHtml(quest.ability)}</p>
+        <p><strong>主となる力：</strong>${escapeHtml(powerNames.get(quest.primaryPower))}</p>
+        <p><strong>一緒に使う力：</strong>${escapeHtml(powerNames.get(quest.supportingPower))}</p>
 ${routeMarkup("日常で試す", quest.daily)}
 ${routeMarkup("学校で試す", quest.school)}
         <p><strong>安全に使うために：</strong>${escapeHtml(quest.safety)}</p>${factCheck}
