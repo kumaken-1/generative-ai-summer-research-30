@@ -165,7 +165,7 @@ function renderCard(quest) {
     ]),
     el("h3", { className: "quest-title", text: model.title }),
     el("p", { className: "quest-ability", text: model.ability }),
-    el("p", { className: "quest-meta", text: `入力方法：${model.inputModeLabel}` }),
+    el("p", { className: "quest-meta", text: `生成AIで使うもの：${model.inputModeLabel}` }),
     status,
     el("button", {
       type: "button",
@@ -194,7 +194,7 @@ function copySection(title, text, name) {
     el("button", {
       type: "button",
       className: "copy-button",
-      text: "入力文をコピー",
+      text: "この文章をコピー",
       "data-copy": name,
     }),
   ]);
@@ -210,13 +210,13 @@ function renderDetail() {
   const routeSwitch = el("div", { className: "route-switch", role: "group", ariaLabel: "試す場面" }, [
     el("button", {
       type: "button",
-      text: "日常で試す",
+      text: "日常の困りごとで試す",
       "data-route": "daily",
       ariaPressed: activeRoute === "daily",
     }),
     el("button", {
       type: "button",
-      text: "学校で試す",
+      text: "学校の困りごとで試す",
       "data-route": "school",
       ariaPressed: activeRoute === "school",
     }),
@@ -238,12 +238,23 @@ function renderDetail() {
     el("p", { className: "quest-number", text: `クエスト ${model.id}` }),
     el("p", { className: `area-label area-label--${model.area}`, text: model.areaLabel }),
     labeledSection("身につくこと", model.ability),
-    labeledSection("入力方法", model.inputModeLabel),
+    labeledSection(
+      "生成AIで使うもの",
+      `${model.inputModeLabel}。${model.inputModeGuidance}`,
+    ),
     routeSwitch,
     labeledSection("こんなときに", route.situation),
-    copySection("最初の一言", route.firstPrompt, "first"),
-    labeledSection("自分はどう思う？", model.reflectPrompt, "reflection"),
-    copySection("自分の考えを、もう一言", route.followUp, "follow-up"),
+    copySection("まず、この文章を生成AIに入力してみよう", route.firstPrompt, "first"),
+    labeledSection(
+      "AIの回答を読んで、合わないところを伝えよう",
+      model.reflectPrompt,
+      "reflection",
+    ),
+    copySection(
+      "AIの回答を読んだら、続けてこの文章を入力しよう",
+      route.followUp,
+      "follow-up",
+    ),
     labeledSection(
       "生成AIを開けないとき",
       "生成AIを開けないときは、入力例を読み、どんな返事が来そうか考えるだけでも参加できます。",
@@ -251,7 +262,11 @@ function renderDetail() {
     ),
   ];
   if (model.factCheck.required) {
-    children.push(labeledSection("事実を確かめる", model.factCheck.method, "fact-check"));
+    children.push(labeledSection(
+      "AIの回答が正しいか、別の資料と比べよう",
+      model.factCheck.method,
+      "fact-check",
+    ));
   }
   children.push(
     labeledSection("安全に使うために", model.safety, "safety-note"),
@@ -274,7 +289,7 @@ function renderDetail() {
       }),
       el("button", {
         type: "button",
-        text: model.completed ? "クリアを取り消す" : "クリアにする",
+        text: model.completed ? "できた記録を取り消す" : "できたことにする",
         "data-toggle-completed": String(model.id),
         ariaPressed: model.completed,
       }),
@@ -348,7 +363,7 @@ async function copyPrompt(button) {
   try {
     if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
     await navigator.clipboard.writeText(text);
-    showToast("入力文をコピーしました");
+    showToast("コピーしました。ChatGPTなどの生成AIを開いて貼り付けてください。");
   } catch {
     const selection = window.getSelection();
     const range = document.createRange();

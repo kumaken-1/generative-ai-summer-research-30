@@ -51,6 +51,19 @@ test("HTML exposes the complete Japanese page structure before JavaScript runs",
 test("HTML provides accessible render targets for progress, filters, quests, and feedback", async () => {
   const html = await read("../index.html");
 
+  assert.match(html, /<section[^>]+aria-labelledby="beginner-guide-title"/i);
+  assert.match(html, /<h2\s+id="beginner-guide-title"[^>]*>このサイトの使い方は3つだけ<\/h2>/i);
+  assert.match(html, /選ぶ：気になるクエスト（小さなお題）を一つ選ぶ/);
+  assert.match(html, /コピー：表示された文章をコピーする/);
+  assert.match(html, /生成AIで送る：ChatGPTなどの生成AIを開き、文章を貼り付けて送る/);
+  assert.match(
+    html,
+    /AIの回答が正しいとは限りません。回答を読んで、自分の考えも続けて入力しましょう。/,
+  );
+  assert.ok(
+    html.indexOf('aria-labelledby="beginner-guide-title"') < html.indexOf('aria-labelledby="progress-title"'),
+    "初心者向け案内は進み具合より前に置く",
+  );
   assert.match(html, /<section[^>]+aria-labelledby="progress-title"/i);
   assert.match(html, /<h2\s+id="progress-title"/i);
   assert.match(html, /<div\s+id="progress"[^>]+aria-live="polite"/i);
@@ -86,6 +99,37 @@ test("HTML provides accessible render targets for progress, filters, quests, and
   assert.match(html, /<button\s+id="close-dialog"[^>]*>/i);
   assert.match(html, /<div\s+id="toast"\s+role="status"\s+aria-live="polite"/i);
   assert.match(html, /<script\s+type="module"\s+src="\.\/js\/app\.js"><\/script>/i);
+});
+
+test("app uses explicit beginner-facing action labels", async () => {
+  const app = await read("../js/app.js");
+
+  for (const label of [
+    "生成AIで使うもの",
+    "まず、この文章を生成AIに入力してみよう",
+    "AIの回答を読んで、合わないところを伝えよう",
+    "AIの回答を読んだら、続けてこの文章を入力しよう",
+    "この文章をコピー",
+    "日常の困りごとで試す",
+    "学校の困りごとで試す",
+    "できたことにする",
+    "できた記録を取り消す",
+    "AIの回答が正しいか、別の資料と比べよう",
+    "コピーしました。ChatGPTなどの生成AIを開いて貼り付けてください。",
+  ]) {
+    assert.ok(app.includes(label), `missing explicit label: ${label}`);
+  }
+
+  for (const ambiguousLabel of [
+    "最初のひとこと",
+    "最初の一言",
+    "自分の考えを、もう一言",
+    "入力文をコピー",
+    "入力方法",
+    "クリアにする",
+  ]) {
+    assert.ok(!app.includes(ambiguousLabel), `ambiguous UI label remains: ${ambiguousLabel}`);
+  }
 });
 
 test("app routes toast messages to one live region and restores regenerated card focus", async () => {

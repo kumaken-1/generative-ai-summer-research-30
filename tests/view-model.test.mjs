@@ -5,6 +5,7 @@ import { quests } from "../js/quests.js";
 import {
   AREA_LABELS,
   BADGE_LABELS,
+  INPUT_MODE_GUIDANCE,
   INPUT_MODE_LABELS,
   classifyQuestHash,
   createQuestViewModel,
@@ -67,11 +68,18 @@ test("Japanese labels cover every quest area, input mode, and badge", () => {
     thinking: "自分の使い方",
   });
   assert.deepEqual(INPUT_MODE_LABELS, {
-    text: "文字入力",
+    text: "文字だけ",
     camera: "カメラ・写真",
     paste: "文章を貼り付け",
     document: "文書を添付",
     image: "画像を添付",
+  });
+  assert.deepEqual(INPUT_MODE_GUIDANCE, {
+    text: "下の文章をコピーし、ChatGPTなどの生成AIの入力欄へ貼り付けて送ります。",
+    camera: "個人情報が入っていないことを確認し、生成AIの画面で撮影するか写真を選んで添付してから、下の文章を送ります。",
+    paste: "個人情報を除いた文章を生成AIの入力欄へ貼り付け、続けて下の文章を送ります。",
+    document: "個人情報を含まない、公開可能な文書だけを生成AIに添付し、下の文章を送ります。",
+    image: "個人情報を隠した公開可能な画像だけを生成AIに添付し、下の文章を送ります。",
   });
   assert.deepEqual(BADGE_LABELS, {
     "first-step": "はじめの一歩",
@@ -90,7 +98,11 @@ test("createQuestViewModel adds labels and completion/favorite state", () => {
   });
 
   assert.equal(model.areaLabel, "文字で話す");
-  assert.equal(model.inputModeLabel, "文字入力");
+  assert.equal(model.inputModeLabel, "文字だけ");
+  assert.equal(
+    model.inputModeGuidance,
+    "下の文章をコピーし、ChatGPTなどの生成AIの入力欄へ貼り付けて送ります。",
+  );
   assert.equal(model.completed, true);
   assert.equal(model.favorite, false);
   assert.equal(model.completionLabel, "クリア済み");
