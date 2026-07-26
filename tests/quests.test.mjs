@@ -132,8 +132,11 @@ test("振り返りと対話で本人の判断を促す", () => {
 
 test("事実確認が必要な回には具体的な確認方法がある", () => {
   const factChecks = quests.filter((quest) => quest.factCheck.required);
-  assert.ok(factChecks.length >= 5);
+  assert.deepEqual(factChecks.map((quest) => quest.id), [11, 15, 17, 26, 27]);
   assert.ok(factChecks.every((quest) => quest.factCheck.method.length >= 10));
+  assert.ok(factChecks.every((quest) => /原文|発行元|更新日|一次資料|公式|複数/.test(
+    quest.factCheck.method,
+  )));
 });
 
 test("入力例に個人情報や機密情報の入力を求めない", () => {
@@ -143,10 +146,40 @@ test("入力例に個人情報や機密情報の入力を求めない", () => {
     quest.school.firstPrompt,
     quest.school.followUp,
   ]).join("\n");
-  for (const forbidden of ["児童の名前を入", "保護者名を入", "職員名を入", "成績を貼", "健康情報を貼"]) {
+  for (const forbidden of [
+    "児童名",
+    "児童の名前を入",
+    "保護者名",
+    "職員名",
+    "実名",
+    "成績を貼",
+    "健康情報を貼",
+    "顔写真を添付",
+  ]) {
     assert.doesNotMatch(examples, new RegExp(forbidden));
   }
-  assert.ok(quests.every((quest) => /架空|公開|個人情報なし|個人情報を含まない/.test(
-    `${quest.school.firstPrompt}${quest.school.followUp}${quest.safety}`,
-  )));
+  const schoolPrefix = "個人情報を含まない架空・公開の内容で試します。";
+  assert.ok(quests.every((quest) => quest.school.firstPrompt.startsWith(schoolPrefix)));
+
+  const attachmentQuests = quests.filter((quest) =>
+    ["camera", "image", "document"].includes(quest.inputMode));
+  for (const quest of attachmentQuests) {
+    for (const route of ["daily", "school"]) {
+      assert.match(quest[route].firstPrompt, /個人情報|名前や住所/);
+      assert.match(quest[route].firstPrompt, /架空|公開/);
+    }
+  }
+});
+
+test("関連参照と入力方式と安全・事実確認の型が有効である", () => {
+  const inputModes = new Set(["text", "paste", "camera", "image", "document"]);
+  for (const quest of quests) {
+    assert.ok(inputModes.has(quest.inputMode));
+    assert.ok(Array.isArray(quest.related));
+    assert.ok(quest.related.every((id) =>
+      Number.isInteger(id) && id >= 1 && id <= 30 && id !== quest.id));
+    assert.equal(typeof quest.factCheck.required, "boolean");
+    assert.equal(typeof quest.factCheck.method, "string");
+    assert.ok(quest.safety.trim().length > 0);
+  }
 });
