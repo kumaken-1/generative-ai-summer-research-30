@@ -9,6 +9,7 @@ import {
 import {
   AREA_LABELS,
   BADGE_LABELS,
+  classifyQuestHash,
   createQuestViewModel,
   filterQuests,
   getQuestById,
@@ -350,10 +351,10 @@ dialog.addEventListener("keydown", (event) => {
 });
 dialog.addEventListener("close", finishClose);
 window.addEventListener("hashchange", () => {
-  const id = parseQuestHash(window.location.hash);
-  if (id) {
-    openQuest(id, { updateHash: false });
-  } else if (dialog.open) {
+  const hash = classifyQuestHash(window.location.hash);
+  if (hash.type === "valid") {
+    openQuest(hash.id, { updateHash: false });
+  } else if (hash.type === "empty" && dialog.open) {
     closeQuest();
   }
 });
@@ -361,5 +362,7 @@ window.addEventListener("hashchange", () => {
 renderProgress();
 renderFilters();
 renderCards();
-const initialQuestId = parseQuestHash(window.location.hash);
-if (initialQuestId) openQuest(initialQuestId, { updateHash: false });
+const initialHash = classifyQuestHash(window.location.hash);
+if (initialHash.type === "valid") {
+  openQuest(initialHash.id, { updateHash: false });
+}

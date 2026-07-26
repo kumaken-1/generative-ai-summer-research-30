@@ -49,6 +49,10 @@ test("HTML provides accessible render targets for progress, filters, quests, and
   assert.match(html, /<section[^>]+aria-labelledby="quest-title"/i);
   assert.match(html, /<h2\s+id="quest-title"/i);
   assert.match(html, /<div\s+id="quest-list"\s+class="quest-grid"/i);
+  assert.match(
+    html,
+    /クエストを表示するにはJavaScriptを有効にしてください。JavaScriptが使えない場合は、印刷用のクエストマップをご利用ください。/,
+  );
   assert.match(html, /<dialog\s+id="quest-dialog"[^>]+aria-labelledby="dialog-title"/i);
   assert.match(html, /<h2\s+id="dialog-title"/i);
   assert.match(html, /<div\s+id="quest-detail"/i);

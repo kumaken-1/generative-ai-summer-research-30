@@ -31,6 +31,16 @@ export function parseQuestHash(hash) {
   return Number.isInteger(id) && id >= 1 && id <= 30 ? id : null;
 }
 
+export function classifyQuestHash(hash) {
+  if (hash === "") {
+    return { type: "empty", id: null };
+  }
+  const id = parseQuestHash(hash);
+  return id === null
+    ? { type: "invalid", id: null }
+    : { type: "valid", id };
+}
+
 export function getQuestById(quests, id) {
   const numericId = typeof id === "string" && /^\d+$/.test(id) ? Number(id) : id;
   return quests.find((quest) => quest.id === numericId) ?? null;

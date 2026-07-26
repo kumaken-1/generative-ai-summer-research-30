@@ -6,6 +6,7 @@ import {
   AREA_LABELS,
   BADGE_LABELS,
   INPUT_MODE_LABELS,
+  classifyQuestHash,
   createQuestViewModel,
   filterQuests,
   getQuestById,
@@ -33,6 +34,14 @@ test("parseQuestHash accepts only exact quest hashes from 1 through 30", () => {
   assert.equal(parseQuestHash("#quest-12"), 12);
   for (const hash of ["", "#quest-0", "#quest-31", "#quest-1-extra", "#QUEST-1"]) {
     assert.equal(parseQuestHash(hash), null);
+  }
+});
+
+test("classifyQuestHash distinguishes empty, valid, and invalid hashes", () => {
+  assert.deepEqual(classifyQuestHash(""), { type: "empty", id: null });
+  assert.deepEqual(classifyQuestHash("#quest-12"), { type: "valid", id: 12 });
+  for (const hash of ["#garbage", "#quest-0", "#quest-31", "#quest-1-extra"]) {
+    assert.deepEqual(classifyQuestHash(hash), { type: "invalid", id: null });
   }
 });
 
