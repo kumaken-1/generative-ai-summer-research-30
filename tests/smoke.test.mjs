@@ -64,6 +64,91 @@ const CONTENT_TYPES = {
     });
   });
 
+  test("index and print pages never overflow horizontally at supported viewports", async () => {
+    const browser = await chromium.launch();
+    const viewports = [
+      { width: 390, height: 844 },
+      { width: 820, height: 1180 },
+      { width: 1440, height: 1000 },
+    ];
+
+    try {
+      for (const viewport of viewports) {
+        const page = await browser.newPage({ viewport });
+        for (const pathname of ["/", "/print.html"]) {
+          await page.goto(`${baseURL}${pathname}`, { waitUntil: "networkidle" });
+          const dimensions = await page.evaluate(() => ({
+            clientWidth: document.documentElement.clientWidth,
+            scrollWidth: document.documentElement.scrollWidth,
+          }));
+          assert.ok(
+            dimensions.scrollWidth <= dimensions.clientWidth,
+            `${pathname} overflows at ${viewport.width}px: ${dimensions.scrollWidth} > ${dimensions.clientWidth}`,
+          );
+        }
+        await page.close();
+      }
+    } finally {
+      await browser.close();
+    }
+  });
+
+  test("mobile primary controls are easy to tap and the full beginner path works", async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: { writeText: async () => {} },
+      });
+    });
+
+    const assertVisibleButtonsAreTallEnough = async (selector, label) => {
+      const heights = await page.locator(selector).evaluateAll((buttons) => buttons
+        .filter((button) => {
+          const style = getComputedStyle(button);
+          const rect = button.getBoundingClientRect();
+          return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+        })
+        .map((button) => button.getBoundingClientRect().height));
+      assert.ok(heights.length > 0, `${label} has no visible controls`);
+      for (const height of heights) {
+        assert.ok(height >= 44, `${label} control is only ${height}px tall`);
+      }
+    };
+
+    try {
+      await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
+      await assertVisibleButtonsAreTallEnough("#filters button", "filters");
+      await assertVisibleButtonsAreTallEnough(".quest-open", "quest open");
+      await assertVisibleButtonsAreTallEnough("#open-powers-guide", "powers guide open");
+
+      await page.getByRole("button", { name: /写真や文章/ }).click();
+      assert.equal(await page.locator(".quest-card").count(), 10);
+      await page.getByRole("button", { name: /すべて/ }).click();
+      await page.locator('.quest-card[data-quest-id="1"] .quest-open').click();
+      await assertVisibleButtonsAreTallEnough(".route-switch button", "route switch");
+      await assertVisibleButtonsAreTallEnough("[data-copy]", "copy");
+      await assertVisibleButtonsAreTallEnough(".detail-actions button", "detail actions");
+      await assertVisibleButtonsAreTallEnough("#close-dialog", "quest close");
+      await page.locator('.route-switch button').last().click();
+      assert.equal(await page.locator('.route-switch button').last().getAttribute("aria-pressed"), "true");
+      await page.locator('[data-copy="first"]').click();
+      await page.getByRole("button", { name: "できたことにする" }).click();
+      assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
+      await page.getByRole("button", { name: "閉じる" }).click();
+      assert.equal(await page.locator("#quest-dialog[open]").count(), 0);
+
+      await page.getByRole("button", { name: "7つの力を見る" }).click();
+      assert.equal(await page.locator("#powers-dialog[open]").count(), 1);
+      await assertVisibleButtonsAreTallEnough("#close-powers-dialog", "powers close");
+      await page.getByRole("button", { name: "7つの力の説明を閉じる" }).click();
+      assert.equal(await page.locator("#powers-dialog[open]").count(), 0);
+    } finally {
+      await browser.close();
+    }
+  });
+
   test("mobile quest browsing, detail, copy, completion, persistence, and hash flow", async () => {
     const browser = await chromium.launch();
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });

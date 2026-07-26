@@ -410,6 +410,13 @@ button:hover {
   background: #f5f9f8;
 }
 
+.prompt-box,
+.power-progress,
+.powers-guide-list li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .detail-section {
   margin-block: 1.5rem;
 }
@@ -587,12 +594,30 @@ dialog::backdrop {
     padding-inline: 1rem;
   }
 
+  .filter-list,
+  .route-switch,
+  .detail-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filter-list button,
+  .route-switch button,
+  .detail-actions button,
+  #open-powers-guide {
+    width: 100%;
+  }
+
+  .quest-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .dialog-header {
     align-items: stretch;
     flex-direction: column;
   }
 
-  #powers-dialog {
+  dialog {
     width: calc(100% - 1rem);
     max-height: calc(100dvh - 1rem);
     padding: 1rem;
