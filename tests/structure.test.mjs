@@ -268,13 +268,14 @@ test("screen styles define the design tokens, grid, focus, and responsive behavi
   assert.match(css, /\.power-item\s+progress\s*\{[^}]*width:\s*100%/s);
   assert.match(css, /\.quest-card\s*\{[^}]*min-height:\s*180px[^}]*padding:\s*1rem[^}]*border:[^;]+;[^}]*border-radius:\s*var\(--radius\)[^}]*background:\s*var\(--surface\)[^}]*box-shadow:\s*var\(--shadow\)/s);
   assert.match(css, /button[\s\S]*min-height:\s*44px/);
+  assert.match(css, /dialog\s*\{[^}]*max-height:\s*calc\(100vh\s*-\s*2rem\);\s*max-height:\s*calc\(100dvh\s*-\s*2rem\)/s);
   assert.match(css, /dialog::backdrop/);
   assert.match(css, /\.screen-reader-only/);
   assert.match(css, /@media\s*\(max-width:\s*640px\)[^{]*\{[\s\S]*padding-inline:\s*1rem/);
   assert.match(css, /@media\s*\(max-width:\s*640px\)[^{]*\{[\s\S]*\.filter-list,\s*\.route-switch,\s*\.detail-actions\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s);
   assert.match(css, /@media\s*\(max-width:\s*640px\)[^{]*\{[\s\S]*\.filter-list\s+button,\s*\.route-switch\s+button,\s*\.detail-actions\s+button,\s*#open-powers-guide\s*\{[^}]*width:\s*100%/s);
   assert.match(css, /@media\s*\(max-width:\s*640px\)[^{]*\{[\s\S]*\.quest-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s);
-  assert.match(css, /@media\s*\(max-width:\s*640px\)[^{]*\{[\s\S]*dialog\s*\{[^}]*width:\s*calc\(100%\s*-\s*1rem\)[^}]*max-height:\s*calc\(100dvh\s*-\s*1rem\)[^}]*padding:\s*1rem/s);
+  assert.match(css, /@media\s*\(max-width:\s*640px\)[^{]*\{[\s\S]*dialog\s*\{[^}]*width:\s*calc\(100%\s*-\s*1rem\)[^}]*max-height:\s*calc\(100vh\s*-\s*1rem\);\s*max-height:\s*calc\(100dvh\s*-\s*1rem\)[^}]*padding:\s*1rem/s);
   assert.match(css, /\.prompt-box,\s*\.power-progress,\s*\.powers-guide-list li\s*\{[^}]*min-width:\s*0[^}]*overflow-wrap:\s*anywhere/s);
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
 });

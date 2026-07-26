@@ -488,6 +488,7 @@ button:hover {
 
 dialog {
   width: min(720px, calc(100% - 2rem));
+  max-height: calc(100vh - 2rem);
   max-height: calc(100dvh - 2rem);
   padding: clamp(1.25rem, 3vw, 2rem);
   overflow: auto;
@@ -619,6 +620,7 @@ dialog::backdrop {
 
   dialog {
     width: calc(100% - 1rem);
+    max-height: calc(100vh - 1rem);
     max-height: calc(100dvh - 1rem);
     padding: 1rem;
   }
