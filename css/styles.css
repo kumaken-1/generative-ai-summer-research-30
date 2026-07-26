@@ -440,7 +440,22 @@ dialog::backdrop {
   box-shadow: var(--shadow);
 }
 
-#toast:empty {
+#dialog-toast {
+  position: sticky;
+  z-index: 2;
+  inset-block-end: 0;
+  width: fit-content;
+  max-width: 100%;
+  margin: 1rem auto 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  color: #fff;
+  background: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+#toast:empty,
+#dialog-toast:empty {
   display: none;
 }
 

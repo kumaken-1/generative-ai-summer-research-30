@@ -79,6 +79,31 @@ dialog,
   font-weight: 700;
 }
 
+.print-quest {
+  min-height: auto;
+  padding-block-start: 4mm;
+}
+
+.print-quest::before {
+  content: none;
+}
+
+.hand-check {
+  margin-block-end: 2mm;
+  font-weight: 700;
+}
+
+.print-route {
+  margin-block: 3mm;
+  padding-block-start: 2mm;
+  border-block-start: 0.5pt solid #aaa;
+}
+
+.print-route h3,
+.print-route p {
+  margin-block: 0 1mm;
+}
+
 .quest-number,
 .quest-title {
   font-weight: 700;

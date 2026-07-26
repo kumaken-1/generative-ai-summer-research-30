@@ -1,8 +1,20 @@
 import assert from "node:assert/strict";
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
+import { createServer } from "node:http";
 import { createRequire } from "node:module";
+import { dirname, extname, resolve, sep } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const CONTENT_TYPES = {
+  ".css": "text/css; charset=utf-8",
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".svg": "image/svg+xml",
+};
 let chromium;
 try {
   ({ chromium } = require("playwright"));
@@ -11,6 +23,56 @@ try {
 }
 
 if (chromium) {
+  let server;
+  let baseURL;
+
+  test.before(async () => {
+    server = createServer(async (request, response) => {
+      if (!["GET", "HEAD"].includes(request.method)) {
+        response.writeHead(405, { Allow: "GET, HEAD" });
+        response.end();
+        return;
+      }
+      try {
+        const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
+        let filePath = resolve(ROOT, `.${pathname}`);
+        if (filePath !== ROOT && !filePath.startsWith(`${ROOT}${sep}`)) {
+          response.writeHead(403);
+          response.end();
+          return;
+        }
+        if ((await stat(filePath)).isDirectory()) filePath = resolve(filePath, "index.html");
+        if (filePath !== ROOT && !filePath.startsWith(`${ROOT}${sep}`)) {
+          response.writeHead(403);
+          response.end();
+          return;
+        }
+        const info = await stat(filePath);
+        response.writeHead(200, {
+          "Content-Length": info.size,
+          "Content-Type": CONTENT_TYPES[extname(filePath)] ?? "application/octet-stream",
+        });
+        if (request.method === "HEAD") response.end();
+        else createReadStream(filePath).pipe(response);
+      } catch {
+        response.writeHead(404);
+        response.end();
+      }
+    });
+    await new Promise((resolveListen, reject) => {
+      server.once("error", reject);
+      server.listen(0, "127.0.0.1", resolveListen);
+    });
+    const { port } = server.address();
+    baseURL = `http://127.0.0.1:${port}`;
+  });
+
+  test.after(async () => {
+    await new Promise((resolveClose, reject) => {
+      server.close((error) => error ? reject(error) : resolveClose());
+    });
+  });
+
   test("mobile quest browsing, detail, copy, completion, persistence, and hash flow", async () => {
     const browser = await chromium.launch();
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -22,7 +84,7 @@ if (chromium) {
     });
 
     try {
-      await page.goto("http://127.0.0.1:4173/", { waitUntil: "networkidle" });
+      await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
       await page.evaluate(() => localStorage.clear());
       await page.reload({ waitUntil: "networkidle" });
       assert.equal(await page.locator(".quest-card").count(), 30);
@@ -47,7 +109,7 @@ if (chromium) {
       assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
       assert.match(await page.locator('.quest-card[data-quest-id="1"]').innerText(), /クリア済み/);
 
-      await page.goto("http://127.0.0.1:4173/#quest-12", { waitUntil: "networkidle" });
+      await page.goto(`${baseURL}/#quest-12`, { waitUntil: "networkidle" });
       assert.equal(await page.locator("#quest-dialog[open]").count(), 1);
       assert.match(await page.locator("#quest-detail").innerText(), /クエスト 12/);
       await page.getByRole("button", { name: "閉じる" }).click();

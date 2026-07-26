@@ -46,6 +46,12 @@ export function getQuestById(quests, id) {
   return quests.find((quest) => quest.id === numericId) ?? null;
 }
 
+export function getQuestFocusSelector(id) {
+  return Number.isInteger(id) && id >= 1 && id <= 30
+    ? `[data-open="${id}"]`
+    : null;
+}
+
 export function createQuestViewModel(quest, progress) {
   const completed = progress.completed.includes(quest.id);
   const favorite = progress.favorites.includes(quest.id);

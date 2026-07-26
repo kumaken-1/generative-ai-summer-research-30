@@ -51,14 +51,27 @@ test("HTML provides accessible render targets for progress, filters, quests, and
   assert.match(html, /<div\s+id="quest-list"\s+class="quest-grid"/i);
   assert.match(
     html,
-    /クエストを表示するにはJavaScriptを有効にしてください。JavaScriptが使えない場合は、印刷用のクエストマップをご利用ください。/,
+    /<noscript>[\s\S]*href="\.\/print\.html"[\s\S]*印刷用のクエストマップ[\s\S]*<\/noscript>/i,
   );
   assert.match(html, /<dialog\s+id="quest-dialog"[^>]+aria-labelledby="dialog-title"/i);
   assert.match(html, /<h2\s+id="dialog-title"/i);
   assert.match(html, /<div\s+id="quest-detail"/i);
+  assert.match(
+    html,
+    /<div\s+id="dialog-toast"\s+role="status"\s+aria-live="polite"\s+aria-atomic="true"><\/div>/i,
+  );
   assert.match(html, /<button\s+id="close-dialog"[^>]*>/i);
   assert.match(html, /<div\s+id="toast"\s+role="status"\s+aria-live="polite"/i);
   assert.match(html, /<script\s+type="module"\s+src="\.\/js\/app\.js"><\/script>/i);
+});
+
+test("app routes toast messages to one live region and restores regenerated card focus", async () => {
+  const app = await read("../js/app.js");
+
+  assert.match(app, /document\.querySelector\("#dialog-toast"\)/);
+  assert.match(app, /dialog\.open[\s\S]*dialogToast[\s\S]*toast/);
+  assert.match(app, /getQuestFocusSelector\(returnQuestId\)/);
+  assert.match(app, /questList\.focus\(\)|main\.focus\(\)/);
 });
 
 test("screen styles define the design tokens, grid, focus, and responsive behavior", async () => {

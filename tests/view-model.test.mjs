@@ -9,6 +9,7 @@ import {
   classifyQuestHash,
   createQuestViewModel,
   filterQuests,
+  getQuestFocusSelector,
   getQuestById,
   parseQuestHash,
 } from "../js/view-model.js";
@@ -50,6 +51,13 @@ test("getQuestById finds numeric and numeric-string IDs without loose matches", 
   assert.equal(getQuestById(quests, "12")?.id, 12);
   assert.equal(getQuestById(quests, "12x"), null);
   assert.equal(getQuestById(quests, 31), null);
+});
+
+test("getQuestFocusSelector points to the current card button safely", () => {
+  assert.equal(getQuestFocusSelector(1), '[data-open="1"]');
+  assert.equal(getQuestFocusSelector(30), '[data-open="30"]');
+  assert.equal(getQuestFocusSelector(0), null);
+  assert.equal(getQuestFocusSelector("1"), null);
 });
 
 test("Japanese labels cover every quest area, input mode, and badge", () => {

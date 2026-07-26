@@ -12,6 +12,7 @@ import {
   classifyQuestHash,
   createQuestViewModel,
   filterQuests,
+  getQuestFocusSelector,
   getQuestById,
   parseQuestHash,
 } from "./view-model.js";
@@ -24,13 +25,16 @@ const dialogTitle = document.querySelector("#dialog-title");
 const detailRoot = document.querySelector("#quest-detail");
 const closeButton = document.querySelector("#close-dialog");
 const toast = document.querySelector("#toast");
+const dialogToast = document.querySelector("#dialog-toast");
 
 let progress = loadProgress();
 let activeFilter = "all";
 let activeQuestId = null;
 let activeRoute = "daily";
 let returnFocus = null;
+let returnQuestId = null;
 let toastTimer;
+let toastMessage = "";
 
 function el(tag, options = {}, children = []) {
   const node = document.createElement(tag);
@@ -45,11 +49,21 @@ function el(tag, options = {}, children = []) {
   return node;
 }
 
+function renderToast() {
+  const inDialog = dialog.open;
+  toast.textContent = inDialog ? "" : toastMessage;
+  dialogToast.textContent = inDialog ? toastMessage : "";
+  toast.setAttribute("aria-hidden", String(inDialog));
+  dialogToast.setAttribute("aria-hidden", String(!inDialog));
+}
+
 function showToast(message) {
   clearTimeout(toastTimer);
-  toast.textContent = message;
+  toastMessage = message;
+  renderToast();
   toastTimer = setTimeout(() => {
-    toast.textContent = "";
+    toastMessage = "";
+    renderToast();
   }, 3500);
 }
 
@@ -140,7 +154,7 @@ function renderCard(quest) {
       type: "button",
       className: "quest-open",
       text: "このクエストを見る",
-      "data-open-quest": String(model.id),
+      "data-open": String(model.id),
     }),
   ]);
 }
@@ -198,7 +212,7 @@ function renderDetail() {
       return el("button", {
         type: "button",
         text: `クエスト ${id}：${relatedQuest.title}`,
-        "data-open-quest": String(id),
+        "data-open": String(id),
       });
     }),
   ]);
@@ -253,12 +267,16 @@ function showDialog() {
     if (typeof dialog.showModal === "function") dialog.showModal();
     else dialog.setAttribute("open", "");
   }
+  renderToast();
 }
 
 function openQuest(id, { updateHash = true, source = null } = {}) {
   const quest = getQuestById(quests, id);
   if (!quest) return;
-  if (source && !dialog.open) returnFocus = source;
+  if (source && !dialog.open) {
+    returnFocus = source;
+    returnQuestId = quest.id;
+  }
   activeQuestId = quest.id;
   activeRoute = "daily";
   renderDetail();
@@ -278,9 +296,18 @@ function removeQuestHash() {
 function finishClose() {
   activeQuestId = null;
   removeQuestHash();
-  const target = returnFocus;
+  const selector = getQuestFocusSelector(returnQuestId);
+  const replacement = selector ? questList.querySelector(selector) : null;
+  const target = returnFocus?.isConnected ? returnFocus : replacement;
   returnFocus = null;
-  if (target?.isConnected) target.focus();
+  returnQuestId = null;
+  renderToast();
+  if (target?.isConnected) {
+    target.focus();
+  } else {
+    questList.tabIndex = -1;
+    questList.focus();
+  }
 }
 
 function closeQuest() {
@@ -328,8 +355,8 @@ document.addEventListener("click", (event) => {
     activeFilter = button.dataset.filter;
     renderFilters();
     renderCards();
-  } else if (button.dataset.openQuest) {
-    openQuest(Number(button.dataset.openQuest), { source: button });
+  } else if (button.dataset.open) {
+    openQuest(Number(button.dataset.open), { source: button });
   } else if (button.dataset.route) {
     activeRoute = button.dataset.route;
     renderDetail();
