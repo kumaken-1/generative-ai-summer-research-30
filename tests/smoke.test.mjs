@@ -194,7 +194,9 @@ const CONTENT_TYPES = {
       assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
       assert.match(await page.locator("#power-summary").innerText(), /2\s*\/\s*60ポイント\s+1\s*\/\s*30題できた/);
       assert.match(await page.locator('.quest-card[data-quest-id="1"]').innerText(), /クリア済み/);
-      await page.locator('.quest-card[data-quest-id="1"]').getByRole("button", { name: "このクエストを見る" }).click();
+      assert.equal(await page.locator("#quest-dialog[open]").count(), 1);
+      assert.match(await page.locator("#quest-detail").innerText(), /クエスト 1/);
+      assert.equal(await page.getByRole("button", { name: "できた記録を取り消す" }).count(), 1);
       await page.getByRole("button", { name: "できた記録を取り消す" }).click();
       assert.match(await page.locator("#power-summary").innerText(), /0\s*\/\s*60ポイント\s+0\s*\/\s*30題できた/);
       assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+0\s*\/\s*10ポイント/);
