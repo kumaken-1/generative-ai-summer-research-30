@@ -15,7 +15,7 @@ test("GitHub Pages workflow has safe triggers, permissions, and concurrency", as
   assert.match(workflow, /^\s{2}pages:\s*write\s*$/m);
   assert.match(workflow, /^\s{2}id-token:\s*write\s*$/m);
   assert.match(workflow, /^concurrency:\s*$/m);
-  assert.match(workflow, /^\s{2}cancel-in-progress:\s*true\s*$/m);
+  assert.match(workflow, /^\s{2}cancel-in-progress:\s*false\s*$/m);
 });
 
 test("GitHub Pages workflow tests and builds before uploading and deploying", async () => {
@@ -60,4 +60,11 @@ test("installed dependencies are excluded from the public repository", async () 
   const gitignore = await readFile(new URL("../.gitignore", import.meta.url), "utf8");
 
   assert.match(gitignore, /^node_modules\/$/m);
+});
+
+test("browser smoke tests import Playwright directly and cannot skip a missing dependency", async () => {
+  const smokeTest = await readFile(new URL("./smoke.test.mjs", import.meta.url), "utf8");
+
+  assert.match(smokeTest, /import\s+\{\s*chromium\s*\}\s+from\s+["']playwright["']/);
+  assert.doesNotMatch(smokeTest, /createRequire|playwright is not installed|\bskip\s*:/);
 });

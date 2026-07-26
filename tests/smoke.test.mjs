@@ -2,12 +2,11 @@ import assert from "node:assert/strict";
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { createServer } from "node:http";
-import { createRequire } from "node:module";
 import { dirname, extname, resolve, sep } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { chromium } from "playwright";
 
-const require = createRequire(import.meta.url);
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CONTENT_TYPES = {
   ".css": "text/css; charset=utf-8",
@@ -15,14 +14,6 @@ const CONTENT_TYPES = {
   ".js": "text/javascript; charset=utf-8",
   ".svg": "image/svg+xml",
 };
-let chromium;
-try {
-  ({ chromium } = require("playwright"));
-} catch {
-  test("Playwright smoke test dependency is available", { skip: "playwright is not installed" }, () => {});
-}
-
-if (chromium) {
   let server;
   let baseURL;
 
@@ -154,4 +145,3 @@ if (chromium) {
       await browser.close();
     }
   });
-}
