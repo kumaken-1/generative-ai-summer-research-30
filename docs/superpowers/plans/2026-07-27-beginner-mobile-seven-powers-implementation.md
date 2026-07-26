@@ -46,10 +46,10 @@ import {
 } from "../js/powers.js";
 
 const expectedTotals = {
-  agency: 9,
+  agency: 10,
   safety: 7,
   delegation: 7,
-  instruction: 13,
+  instruction: 12,
   dialogue: 11,
   verification: 6,
   finishing: 7,
@@ -361,14 +361,14 @@ The browser test must assert:
 
 ```js
 assert.match(await page.locator("#power-summary").innerText(), /0 \/ 60ポイント/);
-assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+0 \/ 9/);
+assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+0 \/ 10/);
 
 await page.locator('.quest-card[data-quest-id="1"] .quest-open').click();
 assert.match(await page.locator("#quest-detail").innerText(), /主となる力\s+対話の杖/);
 assert.match(await page.locator("#quest-detail").innerText(), /一緒に使う力\s+主体性の剣/);
 await page.getByRole("button", { name: "できたことにする" }).click();
 assert.match(await page.locator("#power-summary").innerText(), /2 \/ 60ポイント/);
-assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+1 \/ 9/);
+assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+1 \/ 10/);
 assert.match(await page.locator("#power-summary").innerText(), /対話の杖\s+1 \/ 11/);
 ```
 
@@ -404,8 +404,8 @@ Inside the progress panel:
 <ul class="power-list">
   <li class="power-progress">
     <span>主体性の剣</span>
-    <strong>0 / 9ポイント</strong>
-    <progress value="0" max="9" aria-label="主体性の剣 9ポイント中0ポイント"></progress>
+    <strong>0 / 10ポイント</strong>
+    <progress value="0" max="10" aria-label="主体性の剣 10ポイント中0ポイント"></progress>
   </li>
 </ul>
 ```
