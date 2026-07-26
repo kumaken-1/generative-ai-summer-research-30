@@ -49,10 +49,44 @@ const expectedTitles = [
   "自分の「マイ孫の手」を発見せよ",
 ];
 
+const expectedAbilities = [
+  "普通の言葉で相談する",
+  "一文だけで尋ねる",
+  "続きを一緒に考える",
+  "相手に合わせて言い換える",
+  "追加の一言で調整する",
+  "メモを文章にする",
+  "選択肢を広げる",
+  "説明方法を変えさせる",
+  "困りごとを言葉で説明して整理する",
+  "使い道を自分の生活から探す",
+  "比較する",
+  "初めて写真を撮影・添付する",
+  "写真を添付してチェックリスト化する",
+  "予定を調整する",
+  "文章・文書を渡して簡単にし原文へ戻る",
+  "質問を作る",
+  "写真・スクリーンショットを添付して観点を増やす",
+  "頼み方・断り方を考える",
+  "考えを整理する",
+  "AI案を完成品にせず自分の考えを加える",
+  "好みを言葉にする",
+  "条件を追加する",
+  "違和感を言葉にして対話を続ける",
+  "部分的に採用する",
+  "最初の案を唯一とせず別の見方を集める",
+  "公開資料を添付し回答を原文と比べる",
+  "スクリーンショットや回答から検証方法を尋ねる",
+  "自分の言葉に直す",
+  "よく使う入口を決める",
+  "体験を振り返る",
+];
+
 test("30個のクエストが1から30まで重複なく存在する", () => {
   assert.equal(quests.length, 30);
   assert.deepEqual(quests.map((quest) => quest.id), [...Array(30)].map((_, i) => i + 1));
   assert.deepEqual(quests.map((quest) => quest.title), expectedTitles);
+  assert.deepEqual(quests.map((quest) => quest.ability), expectedAbilities);
 });
 
 test("全クエストが表示に必要なデータを持つ", () => {
@@ -75,6 +109,9 @@ test("領域は10件ずつで、最初の10回はテキスト入力である", (
     ])),
     { text: 10, media: 10, thinking: 10 },
   );
+  assert.ok(quests.slice(0, 10).every((quest) => quest.area === "text"));
+  assert.ok(quests.slice(10, 20).every((quest) => quest.area === "media"));
+  assert.ok(quests.slice(20, 30).every((quest) => quest.area === "thinking"));
   assert.ok(quests.slice(0, 10).every((quest) => quest.inputMode === "text"));
 });
 

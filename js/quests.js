@@ -304,7 +304,7 @@ export const quests = [
     id: 15,
     area: "media",
     title: "むずかしい説明をやさしくせよ",
-    ability: "文章・文書を渡して簡単にし、原文へ戻る",
+    ability: "文章・文書を渡して簡単にし原文へ戻る",
     inputMode: "document",
     daily: {
       situation: "公開された説明文を読みやすくしたい",
