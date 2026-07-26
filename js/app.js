@@ -272,8 +272,8 @@ function renderDetail() {
     labeledSection("身につくこと", model.ability),
     el("section", { className: "detail-section quest-powers" }, [
       el("h3", { text: "このお題で経験する力" }),
-      el("p", { text: `主となる力：${model.primaryPowerName}` }),
-      el("p", { text: `一緒に使う力：${model.supportingPowerName}` }),
+      el("p", { text: `主となる力：${model.primaryPowerName}　＋1` }),
+      el("p", { text: `一緒に使う力：${model.supportingPowerName}　＋1` }),
     ]),
     labeledSection(
       "生成AIで使うもの",

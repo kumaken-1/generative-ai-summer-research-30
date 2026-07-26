@@ -158,9 +158,9 @@ test("app renders seven-power totals, quest power labels, and point-change feedb
   assert.match(app, /POWER_DEFINITIONS/);
   assert.match(app, /calculatePowerProgress/);
   assert.match(app, /ポイントは能力評価ではなく、その力を使う体験をした回数です。/);
-  assert.match(app, /主となる力：/);
+  assert.match(app, /主となる力：\$\{model\.primaryPowerName\}　＋1/);
   assert.match(app, /このお題で経験する力/);
-  assert.match(app, /一緒に使う力：/);
+  assert.match(app, /一緒に使う力：\$\{model\.supportingPowerName\}　＋1/);
   assert.match(app, /1ポイントずつ加わりました。/);
   assert.match(app, /1ポイントずつ取り消しました。/);
 });

@@ -89,8 +89,8 @@ const CONTENT_TYPES = {
       await page.locator('.quest-card[data-quest-id="1"]').getByRole("button", { name: "このクエストを見る" }).click();
       assert.equal(new URL(page.url()).hash, "#quest-1");
       assert.match(await page.locator("#quest-detail").innerText(), /このお題で経験する力/);
-      assert.match(await page.locator("#quest-detail").innerText(), /主となる力：対話の杖/);
-      assert.match(await page.locator("#quest-detail").innerText(), /一緒に使う力：主体性の剣/);
+      assert.match(await page.locator("#quest-detail").innerText(), /主となる力：対話の杖　＋1/);
+      assert.match(await page.locator("#quest-detail").innerText(), /一緒に使う力：主体性の剣　＋1/);
       await page.getByRole("button", { name: "学校の困りごとで試す" }).click();
       const firstPrompt = await page.locator('[data-prompt="first"]').textContent();
       await page.locator('[data-copy="first"]').click();
