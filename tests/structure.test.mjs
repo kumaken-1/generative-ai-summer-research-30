@@ -45,6 +45,19 @@ test("HTML provides accessible render targets for progress, filters, quests, and
   assert.match(html, /<section[^>]+aria-labelledby="progress-title"/i);
   assert.match(html, /<h2\s+id="progress-title"/i);
   assert.match(html, /<div\s+id="progress"[^>]+aria-live="polite"/i);
+  assert.match(
+    html,
+    /<div\s+id="storage-warning"[^>]+role="status"[^>]+hidden[\s\S]*href="\.\/print\.html"/i,
+  );
+  assert.match(
+    html,
+    /この端末では進み具合を保存できません。[\s\S]*印刷用マップをご利用ください。/,
+  );
+  assert.match(html, /<button\s+id="reset-progress"[^>]*>進み具合をリセット<\/button>/i);
+  assert.match(
+    html,
+    /<div\s+id="reset-confirmation"[^>]+hidden[\s\S]*本当にリセットしますか？[\s\S]*id="confirm-reset"[\s\S]*リセットする[\s\S]*id="cancel-reset"[\s\S]*やめる/i,
+  );
   assert.match(html, /<nav\s+id="filters"[^>]+aria-label="[^"]+"/i);
   assert.match(html, /<section[^>]+aria-labelledby="quest-title"/i);
   assert.match(html, /<h2\s+id="quest-title"/i);
@@ -72,6 +85,21 @@ test("app routes toast messages to one live region and restores regenerated card
   assert.match(app, /dialog\.open[\s\S]*dialogToast[\s\S]*toast/);
   assert.match(app, /getQuestFocusSelector\(returnQuestId\)/);
   assert.match(app, /questList\.focus\(\)|main\.focus\(\)/);
+});
+
+test("app keeps interactions usable when storage fails and offers reset confirmation", async () => {
+  const app = await read("../js/app.js");
+
+  assert.match(app, /checkStorageAvailability/);
+  assert.match(app, /storageWarning\.hidden\s*=\s*false/);
+  assert.match(app, /clearProgress/);
+  assert.match(app, /進み具合をリセットしました/);
+  assert.match(app, /resetConfirmation\.hidden\s*=\s*false/);
+  assert.match(app, /progress\s*=\s*\{\s*completed:\s*\[\],\s*favorites:\s*\[\]\s*\}/);
+  assert.match(
+    app,
+    /生成AIを開けないときは、入力例を読み、どんな返事が来そうか考えるだけでも参加できます。/,
+  );
 });
 
 test("screen styles define the design tokens, grid, focus, and responsive behavior", async () => {

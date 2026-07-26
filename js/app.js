@@ -1,5 +1,7 @@
 import { quests } from "./quests.js";
 import {
+  checkStorageAvailability,
+  clearProgress,
   earnedBadges,
   loadProgress,
   saveProgress,
@@ -26,8 +28,14 @@ const detailRoot = document.querySelector("#quest-detail");
 const closeButton = document.querySelector("#close-dialog");
 const toast = document.querySelector("#toast");
 const dialogToast = document.querySelector("#dialog-toast");
+const storageWarning = document.querySelector("#storage-warning");
+const resetButton = document.querySelector("#reset-progress");
+const resetConfirmation = document.querySelector("#reset-confirmation");
+const confirmResetButton = document.querySelector("#confirm-reset");
+const cancelResetButton = document.querySelector("#cancel-reset");
 
 let progress = loadProgress();
+let storageAvailable = true;
 let activeFilter = "all";
 let activeQuestId = null;
 let activeRoute = "daily";
@@ -67,11 +75,17 @@ function showToast(message) {
   }, 3500);
 }
 
+function showStorageWarning() {
+  storageAvailable = false;
+  storageWarning.hidden = false;
+}
+
 function persist() {
+  if (!storageAvailable) return;
   try {
     saveProgress(progress);
   } catch {
-    showToast("この端末では進み具合を保存できません");
+    showStorageWarning();
   }
 }
 
@@ -227,6 +241,11 @@ function renderDetail() {
     copySection("最初の一言", route.firstPrompt, "first"),
     labeledSection("自分はどう思う？", model.reflectPrompt, "reflection"),
     copySection("自分の考えを、もう一言", route.followUp, "follow-up"),
+    labeledSection(
+      "生成AIを開けないとき",
+      "生成AIを開けないときは、入力例を読み、どんな返事が来そうか考えるだけでも参加できます。",
+      "alternative-participation",
+    ),
   ];
   if (model.factCheck.required) {
     children.push(labeledSection("事実を確かめる", model.factCheck.method, "fact-check"));
@@ -348,6 +367,30 @@ function updateProgress(kind, id) {
   if (activeQuestId) renderDetail();
 }
 
+function closeResetConfirmation() {
+  resetConfirmation.hidden = true;
+  resetButton.setAttribute("aria-expanded", "false");
+  resetButton.focus();
+}
+
+function resetProgress() {
+  let cleared = true;
+  try {
+    clearProgress();
+  } catch {
+    cleared = false;
+    showStorageWarning();
+  }
+  progress = { completed: [], favorites: [] };
+  renderProgress();
+  renderCards();
+  if (activeQuestId) renderDetail();
+  closeResetConfirmation();
+  showToast(cleared
+    ? "進み具合をリセットしました"
+    : "端末に保存された進み具合を削除できませんでした");
+}
+
 document.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button) return;
@@ -366,6 +409,14 @@ document.addEventListener("click", (event) => {
     updateProgress("completed", Number(button.dataset.toggleCompleted));
   } else if (button.dataset.toggleFavorite) {
     updateProgress("favorite", Number(button.dataset.toggleFavorite));
+  } else if (button === resetButton) {
+    resetConfirmation.hidden = false;
+    resetButton.setAttribute("aria-expanded", "true");
+    confirmResetButton.focus();
+  } else if (button === confirmResetButton) {
+    resetProgress();
+  } else if (button === cancelResetButton) {
+    closeResetConfirmation();
   }
 });
 
@@ -386,6 +437,11 @@ window.addEventListener("hashchange", () => {
   }
 });
 
+try {
+  checkStorageAvailability();
+} catch {
+  showStorageWarning();
+}
 renderProgress();
 renderFilters();
 renderCards();

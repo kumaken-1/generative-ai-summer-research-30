@@ -196,6 +196,36 @@ button:hover {
   color: var(--muted);
 }
 
+.storage-warning {
+  margin-block: 1rem;
+  padding: 0.85rem 1rem;
+  border: 2px solid #9b5d13;
+  border-radius: 0.75rem;
+  background: #fff8e8;
+  font-weight: 700;
+}
+
+.reset-controls {
+  margin-block-start: 1.25rem;
+}
+
+.reset-confirmation {
+  margin-block-start: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #bdccd2;
+  border-radius: 0.75rem;
+  background: #f5f9f8;
+}
+
+.reset-confirmation p {
+  margin-block-end: 0.75rem;
+  font-weight: 700;
+}
+
+.reset-confirmation button + button {
+  margin-inline-start: 0.5rem;
+}
+
 .filter-bar {
   margin-block-end: 3rem;
   padding: 1rem;

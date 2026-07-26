@@ -27,6 +27,18 @@
         <div id="progress" aria-live="polite">
           <p>挑戦したクエストは、この場所に記録されます。</p>
         </div>
+        <div id="storage-warning" class="storage-warning" role="status" hidden>
+          <span aria-hidden="true">⚠</span>
+          この端末では進み具合を保存できません。<a href="./print.html">印刷用マップをご利用ください。</a>
+        </div>
+        <div class="reset-controls">
+          <button id="reset-progress" type="button" aria-controls="reset-confirmation" aria-expanded="false">進み具合をリセット</button>
+          <div id="reset-confirmation" class="reset-confirmation" hidden>
+            <p>本当にリセットしますか？</p>
+            <button id="confirm-reset" type="button">リセットする</button>
+            <button id="cancel-reset" type="button">やめる</button>
+          </div>
+        </div>
       </section>
 
       <nav id="filters" class="filter-bar" aria-label="クエストの絞り込み">

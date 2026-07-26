@@ -118,4 +118,40 @@ if (chromium) {
       await browser.close();
     }
   });
+
+  test("reset requires confirmation and storage failures keep in-tab progress usable", async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+
+    try {
+      await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
+      await page.locator('.quest-card[data-quest-id="1"]').getByRole("button", { name: "このクエストを見る" }).click();
+      await page.getByRole("button", { name: "クリアにする" }).click();
+      await page.getByRole("button", { name: "閉じる" }).click();
+
+      await page.getByRole("button", { name: "進み具合をリセット" }).click();
+      await page.getByRole("button", { name: "やめる" }).click();
+      assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
+      await page.getByRole("button", { name: "進み具合をリセット" }).click();
+      await page.getByRole("button", { name: "リセットする" }).click();
+      assert.match(await page.locator("#progress").innerText(), /0\s*\/\s*30/);
+      await page.getByText("進み具合をリセットしました").waitFor();
+      assert.equal(await page.locator("#reset-progress").evaluate((node) => node === document.activeElement), true);
+
+      await page.addInitScript(() => {
+        const originalSetItem = Storage.prototype.setItem;
+        Storage.prototype.setItem = function setItem(key, value) {
+          if (key === "ai-summer-research-30-progress-v1") throw new Error("blocked");
+          return originalSetItem.call(this, key, value);
+        };
+      });
+      await page.reload({ waitUntil: "networkidle" });
+      await page.getByText("この端末では進み具合を保存できません。印刷用マップをご利用ください。").waitFor();
+      await page.locator('.quest-card[data-quest-id="2"]').getByRole("button", { name: "このクエストを見る" }).click();
+      await page.getByRole("button", { name: "クリアにする" }).click();
+      assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
+    } finally {
+      await browser.close();
+    }
+  });
 }

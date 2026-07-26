@@ -69,6 +69,16 @@ export function saveProgress(progress, storage = window.localStorage) {
   storage.setItem(STORAGE_KEY, JSON.stringify(normalizeProgress(progress)));
 }
 
+export function checkStorageAvailability(storage = window.localStorage) {
+  const stored = storage.getItem(STORAGE_KEY);
+  if (stored === null) {
+    storage.setItem(STORAGE_KEY, JSON.stringify(normalizeProgress(null)));
+    storage.removeItem(STORAGE_KEY);
+  } else {
+    storage.setItem(STORAGE_KEY, stored);
+  }
+}
+
 export function clearProgress(storage = window.localStorage) {
   storage.removeItem(STORAGE_KEY);
 }

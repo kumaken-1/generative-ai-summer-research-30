@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   STORAGE_KEY,
+  checkStorageAvailability,
   clearProgress,
   earnedBadges,
   loadProgress,
@@ -157,6 +158,53 @@ test("clearProgress removes only the progress key and propagates errors", () => 
     () =>
       clearProgress({
         removeItem() {
+          throw new Error("blocked");
+        },
+      }),
+    /blocked/,
+  );
+});
+
+test("checkStorageAvailability preserves existing progress exactly", () => {
+  const calls = [];
+  const stored = '{"completed":[2,1],"favorites":[3],"future":true}';
+  checkStorageAvailability({
+    getItem(key) {
+      assert.equal(key, STORAGE_KEY);
+      return stored;
+    },
+    setItem(...args) {
+      calls.push(["setItem", ...args]);
+    },
+    removeItem(key) {
+      calls.push(["removeItem", key]);
+    },
+  });
+
+  assert.deepEqual(calls, [["setItem", STORAGE_KEY, stored]]);
+});
+
+test("checkStorageAvailability removes only its temporary progress value", () => {
+  const calls = [];
+  checkStorageAvailability({
+    getItem: () => null,
+    setItem(...args) {
+      calls.push(["setItem", ...args]);
+    },
+    removeItem(key) {
+      calls.push(["removeItem", key]);
+    },
+  });
+
+  assert.deepEqual(calls, [
+    ["setItem", STORAGE_KEY, JSON.stringify({ completed: [], favorites: [] })],
+    ["removeItem", STORAGE_KEY],
+  ]);
+  assert.throws(
+    () =>
+      checkStorageAvailability({
+        getItem: () => null,
+        setItem() {
           throw new Error("blocked");
         },
       }),
