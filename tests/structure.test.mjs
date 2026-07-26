@@ -69,10 +69,6 @@ test("HTML provides accessible render targets for progress, filters, quests, and
   assert.match(html, /<div\s+id="progress"[^>]+aria-live="polite"/i);
   assert.match(
     html,
-    /<div\s+id="power-summary"\s+class="power-summary"\s+aria-live="polite">\s*<p>ポイントを読み込んでいます。<\/p>\s*<\/div>/i,
-  );
-  assert.match(
-    html,
     /<div\s+id="storage-warning"[^>]+role="status"[^>]+hidden[\s\S]*href="\.\/print\.html"/i,
   );
   assert.match(
@@ -103,6 +99,25 @@ test("HTML provides accessible render targets for progress, filters, quests, and
   assert.match(html, /<button\s+id="close-dialog"[^>]*>/i);
   assert.match(html, /<div\s+id="toast"\s+role="status"\s+aria-live="polite"/i);
   assert.match(html, /<script\s+type="module"\s+src="\.\/js\/app\.js"><\/script>/i);
+});
+
+test("power summary avoids duplicate live announcements and keeps concise toast feedback", async () => {
+  const html = await read("../index.html");
+
+  assert.match(
+    html,
+    /<div\s+id="power-summary"\s+class="power-summary">\s*<p>ポイントを読み込んでいます。<\/p>\s*<\/div>/i,
+  );
+  assert.doesNotMatch(
+    html,
+    /<div\s+id="power-summary"[^>]*\saria-live=/i,
+    "7項目の一括再描画は読み上げず、短いtoast通知を優先する",
+  );
+  assert.match(html, /<div\s+id="toast"\s+role="status"\s+aria-live="polite"/i);
+  assert.match(
+    html,
+    /<div\s+id="dialog-toast"\s+role="status"\s+aria-live="polite"\s+aria-atomic="true"><\/div>/i,
+  );
 });
 
 test("app uses explicit beginner-facing action labels", async () => {
