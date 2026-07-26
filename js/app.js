@@ -37,6 +37,10 @@ const resetButton = document.querySelector("#reset-progress");
 const resetConfirmation = document.querySelector("#reset-confirmation");
 const confirmResetButton = document.querySelector("#confirm-reset");
 const cancelResetButton = document.querySelector("#cancel-reset");
+const openPowersGuideButton = document.querySelector("#open-powers-guide");
+const powersDialog = document.querySelector("#powers-dialog");
+const closePowersDialogButton = document.querySelector("#close-powers-dialog");
+const powersGuideList = document.querySelector("#powers-guide-list");
 
 const storage = getLocalStorageSafely();
 let progress = storage ? loadProgress(storage) : { completed: [], favorites: [] };
@@ -48,6 +52,7 @@ let returnFocus = null;
 let returnQuestId = null;
 let toastTimer;
 let toastMessage = "";
+let powersImageLoaded = false;
 
 function el(tag, options = {}, children = []) {
   const node = document.createElement(tag);
@@ -430,6 +435,40 @@ function updateProgress(kind, id) {
   }
 }
 
+function renderPowersGuide() {
+  const items = POWER_DEFINITIONS.map((power) =>
+    el("li", {}, [
+      el("strong", { text: power.name }),
+      el("span", { text: `：${power.shortDescription ?? power.description}` }),
+    ]));
+  powersGuideList.replaceChildren(...items);
+}
+
+function loadPowersGuideImage() {
+  if (powersImageLoaded) return;
+  const source = powersDialog.querySelector("source[data-srcset]");
+  const image = powersDialog.querySelector("img[data-src]");
+  if (source) source.srcset = source.dataset.srcset;
+  if (image) image.src = image.dataset.src;
+  powersImageLoaded = true;
+}
+
+function openPowersGuide() {
+  loadPowersGuideImage();
+  if (typeof powersDialog.showModal === "function") powersDialog.showModal();
+  else powersDialog.setAttribute("open", "");
+  closePowersDialogButton.focus();
+}
+
+function closePowersGuide() {
+  if (typeof powersDialog.close === "function" && powersDialog.open) {
+    powersDialog.close();
+  } else {
+    powersDialog.removeAttribute("open");
+    openPowersGuideButton.focus();
+  }
+}
+
 function closeResetConfirmation() {
   resetConfirmation.hidden = true;
   resetButton.setAttribute("aria-expanded", "false");
@@ -482,6 +521,10 @@ document.addEventListener("click", (event) => {
     resetProgress();
   } else if (button === cancelResetButton) {
     closeResetConfirmation();
+  } else if (button === openPowersGuideButton) {
+    openPowersGuide();
+  } else if (button === closePowersDialogButton) {
+    closePowersGuide();
   }
 });
 
@@ -493,6 +536,7 @@ dialog.addEventListener("keydown", (event) => {
   }
 });
 dialog.addEventListener("close", finishClose);
+powersDialog.addEventListener("close", () => openPowersGuideButton.focus());
 window.addEventListener("hashchange", () => {
   const hash = classifyQuestHash(window.location.hash);
   if (hash.type === "valid") {
@@ -513,6 +557,7 @@ if (!storage) {
 }
 resetControls.hidden = false;
 renderProgress();
+renderPowersGuide();
 renderFilters();
 renderCards();
 const initialHash = classifyQuestHash(window.location.hash);

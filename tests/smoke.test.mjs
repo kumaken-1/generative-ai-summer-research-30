@@ -162,3 +162,38 @@ const CONTENT_TYPES = {
       await browser.close();
     }
   });
+
+  test("seven powers guide loads its image on first open and restores focus on close", async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+
+    try {
+      const imageResponses = [];
+      page.on("response", (response) => {
+        if (response.url().includes("seven-powers-")) imageResponses.push(response.url());
+      });
+      await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
+      assert.equal(imageResponses.length, 0);
+      assert.equal(await page.locator("#powers-guide-list li").count(), 7);
+      assert.match(await page.locator("#powers-guide-list li").first().innerText(), /主体性の剣/);
+      assert.match(await page.locator("#powers-guide-list li").last().innerText(), /仕上げのたい焼き/);
+
+      const opener = page.getByRole("button", { name: "7つの力を見る" });
+      await opener.click();
+      assert.equal(await page.locator("#powers-dialog[open]").count(), 1);
+      await page.locator("#powers-dialog img").waitFor();
+      await page.waitForFunction(() => performance.getEntriesByType("resource")
+        .some((entry) => entry.name.includes("seven-powers-")));
+      assert.ok(imageResponses.length > 0);
+      assert.equal(
+        await page.locator("#close-powers-dialog").evaluate((node) => node === document.activeElement),
+        true,
+      );
+
+      await page.getByRole("button", { name: "7つの力の説明を閉じる" }).click();
+      assert.equal(await page.locator("#powers-dialog[open]").count(), 0);
+      assert.equal(await opener.evaluate((node) => node === document.activeElement), true);
+    } finally {
+      await browser.close();
+    }
+  });

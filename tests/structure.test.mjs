@@ -120,6 +120,47 @@ test("power summary avoids duplicate live announcements and keeps concise toast 
   );
 });
 
+test("seven powers guide is accessible and keeps its images lazy before opening", async () => {
+  const html = await read("../index.html");
+
+  assert.match(
+    html,
+    /<button\s+id="open-powers-guide"\s+type="button"\s+aria-haspopup="dialog">7つの力を見る<\/button>/i,
+  );
+  assert.match(
+    html,
+    /<dialog\s+id="powers-dialog"\s+aria-labelledby="powers-dialog-title"/i,
+  );
+  assert.match(
+    html,
+    /<h2\s+id="powers-dialog-title">生成AIを使うときに大切な7つの力<\/h2>/i,
+  );
+  assert.match(
+    html,
+    /<button\s+id="close-powers-dialog"[^>]*>7つの力の説明を閉じる<\/button>/i,
+  );
+  assert.match(html, /能力評価ではなく[\s\S]*体験回数/);
+  assert.match(
+    html,
+    /<a[^>]+href="\.\/assets\/seven-powers-1055\.webp"[^>]+target="_blank"[^>]+rel="noopener"[^>]*>[\s\S]*画像を大きく見る[\s\S]*<\/a>/i,
+  );
+  assert.match(
+    html,
+    /<source[^>]+data-srcset="\.\/assets\/seven-powers-720\.webp 720w,\s*\.\/assets\/seven-powers-1055\.webp 1055w"/i,
+  );
+  assert.match(
+    html,
+    /<img[^>]+data-src="\.\/assets\/seven-powers-720\.webp"[^>]+width="720"[^>]+height="1018"[^>]+alt="[^"]+"/i,
+  );
+  const imageMarkup = [...html.matchAll(/<(?:source|img)\b[^>]*>/gi)]
+    .map(([tag]) => tag)
+    .filter((tag) => tag.includes("seven-powers-"))
+    .join("\n");
+  assert.doesNotMatch(imageMarkup, /\ssrc="\.\/assets\/seven-powers-/i);
+  assert.doesNotMatch(imageMarkup, /\ssrcset="\.\/assets\/seven-powers-/i);
+  assert.match(html, /<ul\s+id="powers-guide-list"/i);
+});
+
 test("app uses explicit beginner-facing action labels", async () => {
   const html = await read("../index.html");
   const app = await read("../js/app.js");

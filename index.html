@@ -40,6 +40,7 @@
         <div id="power-summary" class="power-summary">
           <p>ポイントを読み込んでいます。</p>
         </div>
+        <button id="open-powers-guide" type="button" aria-haspopup="dialog">7つの力を見る</button>
         <div id="storage-warning" class="storage-warning" role="status" hidden>
           <span aria-hidden="true">⚠</span>
           この端末では進み具合を保存できません。<a href="./print.html">印刷用マップをご利用ください。</a>
@@ -81,6 +82,33 @@
         <p>選んだクエストの進め方を表示します。</p>
       </div>
       <div id="dialog-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    </dialog>
+
+    <dialog id="powers-dialog" aria-labelledby="powers-dialog-title">
+      <div class="dialog-header powers-dialog__header">
+        <h2 id="powers-dialog-title">生成AIを使うときに大切な7つの力</h2>
+        <button id="close-powers-dialog" type="button">7つの力の説明を閉じる</button>
+      </div>
+      <div class="powers-dialog__body">
+        <p class="power-note">ポイントは能力評価ではなく、それぞれの力を使う体験回数を表します。</p>
+        <a class="powers-guide-image-link" href="./assets/seven-powers-1055.webp" target="_blank" rel="noopener">
+          <picture>
+            <source
+              data-srcset="./assets/seven-powers-720.webp 720w, ./assets/seven-powers-1055.webp 1055w"
+              sizes="(max-width: 760px) 100vw, 720px"
+              type="image/webp"
+            >
+            <img
+              data-src="./assets/seven-powers-720.webp"
+              width="720"
+              height="1018"
+              alt="生成AIを使うときに大切な7つの力を、剣・盾・羅針盤・魔法袋・杖・鏡・たい焼きで表した案内図"
+            >
+          </picture>
+          <span>画像を大きく見る</span>
+        </a>
+        <ul id="powers-guide-list" class="powers-guide-list"></ul>
+      </div>
     </dialog>
 
     <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
