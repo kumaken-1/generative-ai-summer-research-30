@@ -1,0 +1,10 @@
+{
+  "name": "generative-ai-summer-research-30",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:content": "node --test tests/quests.test.mjs",
+    "test:state": "node --test tests/state.test.mjs"
+  }
+}
