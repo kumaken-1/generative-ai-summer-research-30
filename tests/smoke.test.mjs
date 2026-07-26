@@ -79,6 +79,8 @@ const CONTENT_TYPES = {
       await page.evaluate(() => localStorage.clear());
       await page.reload({ waitUntil: "networkidle" });
       assert.equal(await page.locator(".quest-card").count(), 30);
+      assert.match(await page.locator("#power-summary").innerText(), /0\s*\/\s*60ポイント\s+0\s*\/\s*30題できた/);
+      assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+0\s*\/\s*10ポイント/);
 
       await page.getByRole("button", { name: /写真や文章/ }).click();
       assert.equal(await page.locator(".quest-card").count(), 10);
@@ -86,6 +88,9 @@ const CONTENT_TYPES = {
       await page.getByRole("button", { name: /すべて/ }).click();
       await page.locator('.quest-card[data-quest-id="1"]').getByRole("button", { name: "このクエストを見る" }).click();
       assert.equal(new URL(page.url()).hash, "#quest-1");
+      assert.match(await page.locator("#quest-detail").innerText(), /このお題で経験する力/);
+      assert.match(await page.locator("#quest-detail").innerText(), /主となる力：対話の杖/);
+      assert.match(await page.locator("#quest-detail").innerText(), /一緒に使う力：主体性の剣/);
       await page.getByRole("button", { name: "学校の困りごとで試す" }).click();
       const firstPrompt = await page.locator('[data-prompt="first"]').textContent();
       await page.locator('[data-copy="first"]').click();
@@ -94,11 +99,22 @@ const CONTENT_TYPES = {
 
       await page.getByRole("button", { name: "できたことにする" }).click();
       assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
+      assert.match(await page.locator("#power-summary").innerText(), /2\s*\/\s*60ポイント\s+1\s*\/\s*30題できた/);
+      assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+1\s*\/\s*10ポイント/);
+      assert.match(await page.locator("#power-summary").innerText(), /対話の杖\s+1\s*\/\s*11ポイント/);
+      await page.getByText("できたことにしました。対話の杖と主体性の剣に1ポイントずつ加わりました。").waitFor();
       assert.equal(await page.getByRole("button", { name: "できた記録を取り消す" }).count(), 1);
 
       await page.reload({ waitUntil: "networkidle" });
       assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
+      assert.match(await page.locator("#power-summary").innerText(), /2\s*\/\s*60ポイント\s+1\s*\/\s*30題できた/);
       assert.match(await page.locator('.quest-card[data-quest-id="1"]').innerText(), /クリア済み/);
+      await page.locator('.quest-card[data-quest-id="1"]').getByRole("button", { name: "このクエストを見る" }).click();
+      await page.getByRole("button", { name: "できた記録を取り消す" }).click();
+      assert.match(await page.locator("#power-summary").innerText(), /0\s*\/\s*60ポイント\s+0\s*\/\s*30題できた/);
+      assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+0\s*\/\s*10ポイント/);
+      assert.match(await page.locator("#power-summary").innerText(), /対話の杖\s+0\s*\/\s*11ポイント/);
+      await page.getByText("できた記録を取り消しました。対話の杖と主体性の剣から1ポイントずつ取り消しました。").waitFor();
 
       await page.goto(`${baseURL}/#quest-12`, { waitUntil: "networkidle" });
       assert.equal(await page.locator("#quest-dialog[open]").count(), 1);

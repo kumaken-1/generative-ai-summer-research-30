@@ -63,14 +63,18 @@ export function getQuestFocusSelector(id) {
 export function createQuestViewModel(quest, progress) {
   const completed = progress.completed.includes(quest.id);
   const favorite = progress.favorites.includes(quest.id);
+  const powerNames = new Map(POWER_DEFINITIONS.map(({ id, name }) => [id, name]));
   return {
     ...quest,
     areaLabel: AREA_LABELS[quest.area],
     inputModeLabel: INPUT_MODE_LABELS[quest.inputMode],
     inputModeGuidance: INPUT_MODE_GUIDANCE[quest.inputMode],
+    primaryPowerName: powerNames.get(quest.primaryPower) ?? "力の情報を確認中",
+    supportingPowerName: powerNames.get(quest.supportingPower) ?? "力の情報を確認中",
     completed,
     favorite,
     completionLabel: completed ? "クリア済み" : "未クリア",
     favoriteLabel: favorite ? "お気に入りから外す" : "お気に入りに追加",
   };
 }
+import { POWER_DEFINITIONS } from "./powers.js";

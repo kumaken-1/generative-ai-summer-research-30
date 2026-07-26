@@ -117,3 +117,24 @@ test("createQuestViewModel adds labels and completion/favorite state", () => {
   assert.equal(favorite.completionLabel, "未クリア");
   assert.equal(favorite.favoriteLabel, "お気に入りから外す");
 });
+
+test("createQuestViewModel safely adds the two power names", () => {
+  const model = createQuestViewModel(quests[0], {
+    completed: [],
+    favorites: [],
+  });
+
+  assert.equal(model.primaryPowerName, "対話の杖");
+  assert.equal(model.supportingPowerName, "主体性の剣");
+
+  const unknown = createQuestViewModel({
+    ...quests[0],
+    primaryPower: "unknown",
+    supportingPower: null,
+  }, {
+    completed: [],
+    favorites: [],
+  });
+  assert.equal(unknown.primaryPowerName, "力の情報を確認中");
+  assert.equal(unknown.supportingPowerName, "力の情報を確認中");
+});

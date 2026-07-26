@@ -1,4 +1,5 @@
 import { quests } from "./quests.js";
+import { POWER_DEFINITIONS, calculatePowerProgress } from "./powers.js";
 import {
   checkStorageAvailability,
   clearProgress,
@@ -21,6 +22,7 @@ import {
 } from "./view-model.js";
 
 const progressRoot = document.querySelector("#progress");
+const powerSummaryRoot = document.querySelector("#power-summary");
 const filtersRoot = document.querySelector("#filters");
 const questList = document.querySelector("#quest-list");
 const dialog = document.querySelector("#quest-dialog");
@@ -93,7 +95,8 @@ function persist() {
 }
 
 function renderProgress() {
-  const count = progress.completed.length;
+  const powerProgress = calculatePowerProgress(quests, progress.completed);
+  const count = powerProgress.completedQuestCount;
   const meter = el("progress", {
     className: "progress-meter",
     max: 30,
@@ -117,6 +120,34 @@ function renderProgress() {
     meter,
     el("h3", { text: "獲得称号" }),
     badgeList,
+  );
+
+  const powerList = el("ul", { className: "power-list" });
+  for (const power of POWER_DEFINITIONS) {
+    const points = powerProgress.byPower[power.id];
+    powerList.append(el("li", { className: "power-item" }, [
+      el("p", { className: "power-item__heading" }, [
+        el("strong", { text: power.name }),
+        el("span", { text: `${points.earned} / ${points.total}ポイント` }),
+      ]),
+      el("p", { className: "power-item__description", text: power.description }),
+      el("progress", {
+        max: points.total,
+        value: points.earned,
+        ariaLabel: `${power.name} ${points.earned} / ${points.total}ポイント`,
+      }),
+    ]));
+  }
+  powerSummaryRoot.replaceChildren(
+    el("p", { className: "power-total" }, [
+      el("strong", { text: `${powerProgress.earnedTotal} / ${powerProgress.total}ポイント` }),
+      document.createTextNode(`　${count} / ${quests.length}題できた`),
+    ]),
+    el("p", {
+      className: "power-note",
+      text: "ポイントは能力評価ではなく、その力を使う体験をした回数です。",
+    }),
+    powerList,
   );
 }
 
@@ -165,6 +196,7 @@ function renderCard(quest) {
     ]),
     el("h3", { className: "quest-title", text: model.title }),
     el("p", { className: "quest-ability", text: model.ability }),
+    el("p", { className: "quest-power", text: `主となる力：${model.primaryPowerName}` }),
     el("p", { className: "quest-meta", text: `生成AIで使うもの：${model.inputModeLabel}` }),
     status,
     el("button", {
@@ -238,6 +270,11 @@ function renderDetail() {
     el("p", { className: "quest-number", text: `クエスト ${model.id}` }),
     el("p", { className: `area-label area-label--${model.area}`, text: model.areaLabel }),
     labeledSection("身につくこと", model.ability),
+    el("section", { className: "detail-section quest-powers" }, [
+      el("h3", { text: "このお題で経験する力" }),
+      el("p", { text: `主となる力：${model.primaryPowerName}` }),
+      el("p", { text: `一緒に使う力：${model.supportingPowerName}` }),
+    ]),
     labeledSection(
       "生成AIで使うもの",
       `${model.inputModeLabel}。${model.inputModeGuidance}`,
@@ -376,6 +413,8 @@ async function copyPrompt(button) {
 }
 
 function updateProgress(kind, id) {
+  const quest = getQuestById(quests, id);
+  const wasCompleted = progress.completed.includes(id);
   progress = kind === "completed"
     ? toggleCompleted(progress, id)
     : toggleFavorite(progress, id);
@@ -383,6 +422,12 @@ function updateProgress(kind, id) {
   renderProgress();
   renderCards();
   if (activeQuestId) renderDetail();
+  if (kind === "completed" && quest) {
+    const model = createQuestViewModel(quest, progress);
+    showToast(wasCompleted
+      ? `できた記録を取り消しました。${model.primaryPowerName}と${model.supportingPowerName}から1ポイントずつ取り消しました。`
+      : `できたことにしました。${model.primaryPowerName}と${model.supportingPowerName}に1ポイントずつ加わりました。`);
+  }
 }
 
 function closeResetConfirmation() {

@@ -176,6 +176,58 @@ button:hover {
   font-size: 1.5rem;
 }
 
+.power-summary {
+  margin-block-start: 1.5rem;
+  padding-block-start: 1.25rem;
+  border-block-start: 1px solid #dce2e7;
+}
+
+.power-total {
+  font-size: 1.1rem;
+}
+
+.power-total strong {
+  font-size: 1.35rem;
+}
+
+.power-note,
+.power-item__description {
+  color: var(--muted);
+}
+
+.power-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.power-item {
+  padding: 1rem;
+  border: 1px solid #dce2e7;
+  border-radius: 0.75rem;
+  background: #f8faf9;
+}
+
+.power-item__heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-block-end: 0.25rem;
+}
+
+.power-item__description {
+  margin-block-end: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.power-item progress {
+  width: 100%;
+  accent-color: var(--text-area);
+}
+
 .badge-list,
 .filter-list {
   display: flex;

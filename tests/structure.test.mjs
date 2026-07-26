@@ -69,6 +69,10 @@ test("HTML provides accessible render targets for progress, filters, quests, and
   assert.match(html, /<div\s+id="progress"[^>]+aria-live="polite"/i);
   assert.match(
     html,
+    /<div\s+id="power-summary"\s+class="power-summary"\s+aria-live="polite">\s*<p>ポイントを読み込んでいます。<\/p>\s*<\/div>/i,
+  );
+  assert.match(
+    html,
     /<div\s+id="storage-warning"[^>]+role="status"[^>]+hidden[\s\S]*href="\.\/print\.html"/i,
   );
   assert.match(
@@ -148,6 +152,19 @@ test("app routes toast messages to one live region and restores regenerated card
   assert.match(app, /questList\.focus\(\)|main\.focus\(\)/);
 });
 
+test("app renders seven-power totals, quest power labels, and point-change feedback", async () => {
+  const app = await read("../js/app.js");
+
+  assert.match(app, /POWER_DEFINITIONS/);
+  assert.match(app, /calculatePowerProgress/);
+  assert.match(app, /ポイントは能力評価ではなく、その力を使う体験をした回数です。/);
+  assert.match(app, /主となる力：/);
+  assert.match(app, /このお題で経験する力/);
+  assert.match(app, /一緒に使う力：/);
+  assert.match(app, /1ポイントずつ加わりました。/);
+  assert.match(app, /1ポイントずつ取り消しました。/);
+});
+
 test("app keeps interactions usable when storage fails and offers reset confirmation", async () => {
   const app = await read("../js/app.js");
 
@@ -191,6 +208,8 @@ test("screen styles define the design tokens, grid, focus, and responsive behavi
   assert.match(css, /body\s*\{[^}]*margin:\s*0[^}]*line-height:\s*1\.7/s);
   assert.match(css, /:focus-visible\s*\{[^}]*outline:\s*3px\s+solid\s+var\(--focus\)/s);
   assert.match(css, /\.quest-grid\s*\{[^}]*grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(260px,\s*1fr\)\)/s);
+  assert.match(css, /\.power-list\s*\{[^}]*grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(100%,\s*18rem\),\s*1fr\)\)[^}]*gap:/s);
+  assert.match(css, /\.power-item\s+progress\s*\{[^}]*width:\s*100%/s);
   assert.match(css, /\.quest-card\s*\{[^}]*min-height:\s*180px[^}]*padding:\s*1rem[^}]*border:[^;]+;[^}]*border-radius:\s*var\(--radius\)[^}]*background:\s*var\(--surface\)[^}]*box-shadow:\s*var\(--shadow\)/s);
   assert.match(css, /button[\s\S]*min-height:\s*44px/);
   assert.match(css, /dialog::backdrop/);
