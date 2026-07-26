@@ -102,7 +102,11 @@ test("HTML provides accessible render targets for progress, filters, quests, and
 });
 
 test("app uses explicit beginner-facing action labels", async () => {
+  const html = await read("../index.html");
   const app = await read("../js/app.js");
+  const viewModel = await read("../js/view-model.js");
+  const questData = await read("../js/quests.js");
+  const visibleUiSources = [html, app, viewModel, questData];
 
   for (const label of [
     "生成AIで使うもの",
@@ -128,7 +132,10 @@ test("app uses explicit beginner-facing action labels", async () => {
     "入力方法",
     "クリアにする",
   ]) {
-    assert.ok(!app.includes(ambiguousLabel), `ambiguous UI label remains: ${ambiguousLabel}`);
+    assert.ok(
+      visibleUiSources.every((source) => !source.includes(ambiguousLabel)),
+      `ambiguous UI label remains: ${ambiguousLabel}`,
+    );
   }
 });
 

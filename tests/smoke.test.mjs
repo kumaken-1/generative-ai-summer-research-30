@@ -86,15 +86,15 @@ const CONTENT_TYPES = {
       await page.getByRole("button", { name: /すべて/ }).click();
       await page.locator('.quest-card[data-quest-id="1"]').getByRole("button", { name: "このクエストを見る" }).click();
       assert.equal(new URL(page.url()).hash, "#quest-1");
-      await page.getByRole("button", { name: "学校で試す" }).click();
+      await page.getByRole("button", { name: "学校の困りごとで試す" }).click();
       const firstPrompt = await page.locator('[data-prompt="first"]').textContent();
       await page.locator('[data-copy="first"]').click();
       assert.equal(await page.evaluate(() => window.__copiedText), firstPrompt);
-      await page.getByText("入力文をコピーしました").waitFor();
+      await page.getByText("コピーしました。ChatGPTなどの生成AIを開いて貼り付けてください。").waitFor();
 
-      await page.getByRole("button", { name: "クリアにする" }).click();
+      await page.getByRole("button", { name: "できたことにする" }).click();
       assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
-      assert.equal(await page.getByRole("button", { name: "クリアを取り消す" }).count(), 1);
+      assert.equal(await page.getByRole("button", { name: "できた記録を取り消す" }).count(), 1);
 
       await page.reload({ waitUntil: "networkidle" });
       assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
@@ -118,7 +118,7 @@ const CONTENT_TYPES = {
     try {
       await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
       await page.locator('.quest-card[data-quest-id="1"]').getByRole("button", { name: "このクエストを見る" }).click();
-      await page.getByRole("button", { name: "クリアにする" }).click();
+      await page.getByRole("button", { name: "できたことにする" }).click();
       await page.getByRole("button", { name: "閉じる" }).click();
 
       await page.getByRole("button", { name: "進み具合をリセット" }).click();
@@ -140,7 +140,7 @@ const CONTENT_TYPES = {
       await page.reload({ waitUntil: "networkidle" });
       await page.getByText("この端末では進み具合を保存できません。印刷用マップをご利用ください。").waitFor();
       await page.locator('.quest-card[data-quest-id="2"]').getByRole("button", { name: "このクエストを見る" }).click();
-      await page.getByRole("button", { name: "クリアにする" }).click();
+      await page.getByRole("button", { name: "できたことにする" }).click();
       assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
     } finally {
       await browser.close();
