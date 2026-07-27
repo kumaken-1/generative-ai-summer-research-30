@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="初心者の教職員が生成AIを気軽に試せる、夏休み限定の30個のミニクエストです。">
-    <title>夏休み限定｜生成AI 夏の自由研究30</title>
+    <meta name="description" content="生成AIをまだ使い慣れていない人が、気になったものから試せる30個のチャレンジです。">
+    <title>生成AI 30のチャレンジ</title>
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="./css/styles.css">
     <link rel="stylesheet" href="./css/print.css" media="print">
@@ -14,108 +14,59 @@
 
     <header class="hero">
       <div class="hero__inner">
-        <p class="eyebrow">夏休み限定</p>
-        <h1>生成AI 夏の自由研究30</h1>
-        <p class="hero__lead">30の『ちょっと試してみる』から、気になるものを選ぼう。</p>
-        <p class="hero__note">1個だけでも、順番どおりでなくてもOK！</p>
-        <p class="hero__tagline">ちょっと聞く。もう一度頼む。最後は自分で決める。</p>
+        <h1>生成AI 30のチャレンジ</h1>
+        <p class="hero__lead">気になったものを、ひとつ試すところから。</p>
+        <p class="hero__note">1個だけでも、順番どおりでなくてもかまいません。</p>
       </div>
     </header>
 
     <main id="main" class="site-main" tabindex="-1">
-      <section class="beginner-guide" aria-labelledby="beginner-guide-title">
-        <h2 id="beginner-guide-title">このサイトの使い方は3つだけ</h2>
-        <ol>
-          <li>選ぶ：気になるクエスト（小さなお題）を一つ選ぶ</li>
-          <li>コピー：表示された文章をコピーする</li>
-          <li>生成AIで送る：ChatGPTなどの生成AIを開き、文章を貼り付けて送る</li>
-        </ol>
-        <p>AIの回答が正しいとは限りません。回答を読んで、自分の考えも続けて入力しましょう。</p>
-        <p>クエストは①送る→②自分の言葉で返す→③使い方を決める、の3ステップで進みます。</p>
-        <p>1日に何個やっても、やらない日があってもかまいません。進める速さは、あなたが決めます。</p>
+      <section class="guide" aria-labelledby="guide-title">
+        <h2 id="guide-title">使い方</h2>
+        <p>気になるチャレンジをひらくと、生成AIに送る文章と、その手順が出てきます。文章をコピーして、ChatGPTなどの生成AIに貼り付けて送ってください。</p>
+        <p>返事が来たら読んで、続けてもう一言だけ返します。AIの答えは完成品ではなく材料なので、使うかどうかは自分で決めます。</p>
+        <p>生成AIを開けないときは、文章を読んで「どんな返事が来そうか」を考えるだけでもかまいません。</p>
       </section>
 
-      <section id="suggestion" class="suggestion" aria-label="迷ったときのクエスト候補">
-        <p>候補を読み込んでいます。</p>
+      <section id="summary" class="summary" aria-label="試した数">
+        <p>読み込んでいます。</p>
       </section>
 
-      <section class="progress-panel" aria-labelledby="progress-title">
-        <h2 id="progress-title">わたしの自由研究</h2>
-        <div id="progress" aria-live="polite">
-          <p>挑戦したクエストは、この場所に記録されます。</p>
+      <div class="reset-controls" hidden>
+        <button id="reset-tried" type="button" aria-controls="reset-confirmation" aria-expanded="false">記録を消す</button>
+        <div id="reset-confirmation" class="reset-confirmation" hidden>
+          <p>「やってみた」の記録を全部消しますか？</p>
+          <button id="confirm-reset" type="button">消す</button>
+          <button id="cancel-reset" type="button">やめる</button>
         </div>
-        <div id="power-summary" class="power-summary">
-          <p>ポイントを読み込んでいます。</p>
-        </div>
-        <button id="open-powers-guide" type="button" aria-haspopup="dialog">7つの力を見る</button>
-        <div id="storage-warning" class="storage-warning" role="status" hidden>
-          <span aria-hidden="true">⚠</span>
-          この端末では進み具合を保存できません。<a href="./print.html">印刷用マップをご利用ください。</a>
-        </div>
-        <div class="reset-controls" hidden>
-          <button id="reset-progress" type="button" aria-controls="reset-confirmation" aria-expanded="false">進み具合をリセット</button>
-          <div id="reset-confirmation" class="reset-confirmation" hidden>
-            <p>本当にリセットしますか？</p>
-            <button id="confirm-reset" type="button">リセットする</button>
-            <button id="cancel-reset" type="button">やめる</button>
-          </div>
-        </div>
-      </section>
+      </div>
 
-      <nav id="filters" class="filter-bar" aria-label="クエストの絞り込み">
-        <p>クエストは「文字」「写真や文章」「自分の使い方」の3つのエリアから選べます。</p>
+      <div id="storage-warning" class="storage-warning" role="status" hidden>
+        この端末では記録を保存できません。<a href="./print.html">印刷用の一覧をご利用ください。</a>
+      </div>
+
+      <nav id="filters" class="filter-bar" aria-label="チャレンジの絞り込み">
+        <p>読み込んでいます。</p>
       </nav>
 
-      <section class="quest-section" aria-labelledby="quest-title">
-        <div class="section-heading">
-          <p class="eyebrow">気になるものから、ひとつずつ</p>
-          <h2 id="quest-title">30のクエスト</h2>
-        </div>
-        <div id="quest-list" class="quest-grid">
-          <p class="loading-note">クエストを読み込んでいます。</p>
+      <section class="list-section" aria-labelledby="list-title">
+        <h2 id="list-title">30のチャレンジ</h2>
+        <div id="challenge-list" class="card-grid">
+          <p class="loading-note">読み込んでいます。</p>
           <noscript>
-            <p>クエストを表示するにはJavaScriptを有効にしてください。JavaScriptが使えない場合は、<a href="./print.html">印刷用のクエストマップ</a>をご利用ください。</p>
+            <p>表示するにはJavaScriptを有効にしてください。使えない場合は<a href="./print.html">印刷用の一覧</a>をご利用ください。</p>
           </noscript>
         </div>
       </section>
     </main>
 
-    <dialog id="quest-dialog" aria-labelledby="dialog-title">
+    <dialog id="challenge-dialog" aria-labelledby="dialog-title">
       <div class="dialog-header">
-        <h2 id="dialog-title">クエストの詳細</h2>
+        <h2 id="dialog-title">チャレンジ</h2>
         <button id="close-dialog" type="button">閉じる</button>
       </div>
-      <div id="quest-detail">
-        <p>選んだクエストの進め方を表示します。</p>
-      </div>
+      <div id="challenge-detail"></div>
       <div id="dialog-toast" role="status" aria-live="polite" aria-atomic="true"></div>
-    </dialog>
-
-    <dialog id="powers-dialog" aria-labelledby="powers-dialog-title">
-      <div class="dialog-header powers-dialog__header">
-        <h2 id="powers-dialog-title">生成AIを使うときに大切な7つの力</h2>
-        <button id="close-powers-dialog" type="button">7つの力の説明を閉じる</button>
-      </div>
-      <div class="powers-dialog__body">
-        <p class="power-note">ポイントは能力評価ではなく、それぞれの力を使う体験回数を表します。</p>
-        <a class="powers-guide-image-link" href="./assets/seven-powers-1055.webp" target="_blank" rel="noopener">
-          <picture>
-            <source
-              data-srcset="./assets/seven-powers-720.webp 720w, ./assets/seven-powers-1055.webp 1055w"
-              sizes="(max-width: 760px) 100vw, 720px"
-              type="image/webp"
-            >
-            <img
-              data-src="./assets/seven-powers-720.webp"
-              width="720"
-              height="1018"
-              alt="生成AIを使うときに大切な7つの力を、剣・盾・羅針盤・魔法袋・杖・鏡・たい焼きで表した案内図"
-            >
-          </picture>
-          <span>画像を大きく見る</span>
-        </a>
-        <ul id="powers-guide-list" class="powers-guide-list"></ul>
-      </div>
     </dialog>
 
     <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>

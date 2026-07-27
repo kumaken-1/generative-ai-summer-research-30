@@ -31,9 +31,12 @@ body {
   font-size: 10pt;
 }
 
-.hero__tagline,
-.hero .eyebrow,
+.hero__note,
 .skip-link,
+.guide,
+.summary,
+.reset-controls,
+.storage-warning,
 button,
 nav,
 dialog,
@@ -46,78 +49,71 @@ dialog,
   padding: 5mm 0 0;
 }
 
-.progress-panel {
-  margin: 0 0 4mm;
-  padding: 3mm;
-  border: 1pt solid #777;
-  box-shadow: none;
-}
-
-.quest-grid {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 3mm;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4mm;
 }
 
-.quest-card {
-  position: relative;
-  min-height: 35mm;
-  padding: 4mm;
-  padding-block-start: 9mm;
+.print-challenge {
   break-inside: avoid;
+  padding: 4mm;
   border: 1pt solid #555;
   border-radius: 2mm;
-  box-shadow: none;
   font-size: 9pt;
 }
 
-.quest-card::before {
-  content: "□ できた";
-  position: absolute;
-  inset-block-start: 2mm;
-  inset-inline-end: 3mm;
+.print-check {
+  margin: 0 0 1mm;
   font-weight: 700;
 }
 
-.print-quest {
-  min-height: auto;
-  padding-block-start: 4mm;
+.print-category {
+  margin: 0 0 1mm;
+  font-size: 8pt;
 }
 
-.print-quest::before {
-  content: none;
-}
-
-.hand-check {
-  margin-block-end: 2mm;
+.print-title {
+  margin: 0 0 2mm;
+  font-size: 11pt;
   font-weight: 700;
 }
 
-.print-route {
-  margin-block: 3mm;
-  padding-block-start: 2mm;
+.print-intro {
+  margin: 0 0 2mm;
+}
+
+.print-label {
+  margin: 3mm 0 1mm;
+  padding-block-start: 1.5mm;
   border-block-start: 0.5pt solid #aaa;
-}
-
-.print-route h3,
-.print-route p {
-  margin-block: 0 1mm;
-}
-
-.quest-number,
-.quest-title {
   font-weight: 700;
 }
 
-.quest-title {
-  font-size: 10pt;
+.print-steps {
+  margin: 0 0 2mm;
+  padding-inline-start: 5mm;
 }
 
-.prompt-box,
-.safety-note {
+.print-help {
+  font-size: 8pt;
+}
+
+.print-prompt {
+  margin: 0 0 2mm;
   padding: 2mm;
-  border: 0;
-  background: none;
+  border: 0.5pt solid #555;
+}
+
+.print-reply {
+  margin: 0 0 2mm;
+  font-style: italic;
+}
+
+.print-hints,
+.print-safety {
+  margin: 0 0 1mm;
+  font-size: 8pt;
 }
 
 * {

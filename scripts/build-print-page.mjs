@@ -2,12 +2,16 @@ import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
-import { quests } from "../js/quests.js";
-import { POWER_DEFINITIONS } from "../js/powers.js";
+import { CATEGORIES, challenges } from "../js/challenges.js";
+import {
+  FOLLOW_UP_STEPS,
+  HELP_TEXTS,
+  SAFETY_NOTE,
+  SEND_TYPES,
+  FILL_TYPE,
+} from "../js/view-model.js";
 
-const powerNames = new Map(
-  POWER_DEFINITIONS.map(({ id, name }) => [id, name]),
-);
+const categoryNames = new Map(CATEGORIES.map(({ id, name }) => [id, name]));
 
 export function escapeHtml(value) {
   return String(value)
@@ -19,40 +23,37 @@ export function escapeHtml(value) {
 }
 
 // 画面では入力欄になる空欄を、紙では手書きできる下線にする。
-export function printableFollowUp(followUp) {
-  return String(followUp.template).replace("____", "＿＿＿＿＿＿＿＿");
+export function printableTemplate(template) {
+  return String(template).replace("____", "＿＿＿＿＿＿＿＿");
 }
 
-// 画面ではクリア済みのクエスト名が入る差し込み口を、紙では一般的な言い方にする。
-export function printableFirstPrompt(firstPrompt) {
-  return String(firstPrompt).replaceAll("{{cleared}}", "いくつかのクエスト");
+function stepsMarkup(steps, startAt) {
+  const items = steps.map((step, index) => {
+    const help = step.help && HELP_TEXTS[step.help]
+      ? `<br><span class="print-help">${escapeHtml(HELP_TEXTS[step.help].title)}：${escapeHtml(HELP_TEXTS[step.help].body)}</span>`
+      : "";
+    return `            <li value="${startAt + index}">${escapeHtml(step.text)}${help}</li>`;
+  });
+  return `          <ol class="print-steps" start="${startAt}">\n${items.join("\n")}\n          </ol>`;
 }
 
-function routeMarkup(label, route) {
-  return `        <section class="print-route">
-          <h3>${escapeHtml(label)}</h3>
-          <p><strong>生成AIで使うもの：</strong>${escapeHtml(route.situation)}</p>
-          <p><strong>まず、この文章を生成AIに入力してみよう：</strong>${escapeHtml(printableFirstPrompt(route.firstPrompt))}</p>
-          <p><strong>AIの回答を読んだら、続けてこの文章を入力しよう：</strong>${escapeHtml(printableFollowUp(route.followUp))}</p>
-          <p class="print-hints"><strong>書きにくいときの例：</strong>${escapeHtml(route.followUp.hints.join(" ／ "))}</p>
-        </section>`;
-}
-
-function questMarkup(quest) {
-  const factCheck = quest.factCheck.required
-    ? `
-        <p><strong>事実を確かめる：</strong>${escapeHtml(quest.factCheck.method)}</p>`
-    : "";
-  return `      <article class="quest-card print-quest">
-        <p class="hand-check">□ ①送った　□ ②自分の言葉で返した　□ ③使い方を決めた</p>
-        <p class="quest-number">クエスト ${quest.id}</p>
-        <h2 class="quest-title">${escapeHtml(quest.title)}</h2>
-        <p><strong>身につくこと：</strong>${escapeHtml(quest.ability)}</p>
-        <p><strong>主となる力：</strong>${escapeHtml(powerNames.get(quest.primaryPower))}</p>
-        <p><strong>一緒に使う力：</strong>${escapeHtml(powerNames.get(quest.supportingPower))}</p>
-${routeMarkup("日常で試す", quest.daily)}
-${routeMarkup("学校で試す", quest.school)}
-        <p><strong>安全に使うために：</strong>${escapeHtml(quest.safety)}</p>${factCheck}
+function challengeMarkup(challenge) {
+  const sendType = SEND_TYPES[challenge.send.type] ?? SEND_TYPES.asis;
+  const followStart = challenge.send.steps.length + 1;
+  return `      <article class="print-challenge">
+        <p class="print-check">□ やってみた</p>
+        <p class="print-category">${escapeHtml(categoryNames.get(challenge.category) ?? "")}</p>
+        <h2 class="print-title">${escapeHtml(challenge.title)}</h2>
+        <p class="print-intro">${escapeHtml(challenge.intro.replaceAll("\n", " "))}</p>
+        <p class="print-label">1回目 — ${escapeHtml(sendType.label)}</p>
+${stepsMarkup(challenge.send.steps, 1)}
+        <p class="print-prompt">${escapeHtml(challenge.send.prompt)}</p>
+        <p class="print-reply">${escapeHtml(challenge.reply)}</p>
+        <p class="print-label">2回目 — ${escapeHtml(FILL_TYPE.label)}</p>
+${stepsMarkup(FOLLOW_UP_STEPS, followStart)}
+        <p class="print-prompt">${escapeHtml(printableTemplate(challenge.followUp.template))}</p>
+        <p class="print-hints">例：${escapeHtml(challenge.followUp.hints.join(" ／ "))}</p>
+        <p class="print-safety">${escapeHtml(SAFETY_NOTE)}</p>
       </article>`;
 }
 
@@ -62,21 +63,20 @@ export function buildPrintPage(items) {
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>印刷用クエストマップ｜生成AI 夏の自由研究30</title>
+    <title>印刷用一覧｜生成AI 30のチャレンジ</title>
     <link rel="stylesheet" href="./css/styles.css">
     <link rel="stylesheet" href="./css/print.css">
   </head>
   <body>
     <header class="hero">
       <div class="hero__inner">
-        <p class="eyebrow">印刷用クエストマップ</p>
-        <h1>生成AI 夏の自由研究30</h1>
-        <p class="hero__lead">気になるクエストを選び、試したら手書きでチェックしましょう。</p>
+        <h1>生成AI 30のチャレンジ</h1>
+        <p class="hero__lead">気になったものを、ひとつ試すところから。</p>
       </div>
     </header>
     <main class="site-main">
-      <div class="quest-grid">
-${items.map(questMarkup).join("\n")}
+      <div class="card-grid">
+${items.map(challengeMarkup).join("\n")}
       </div>
     </main>
   </body>
@@ -87,5 +87,5 @@ ${items.map(questMarkup).join("\n")}
 const isMain = process.argv[1]
   && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
-  await writeFile(new URL("../print.html", import.meta.url), buildPrintPage(quests), "utf8");
+  await writeFile(new URL("../print.html", import.meta.url), buildPrintPage(challenges), "utf8");
 }

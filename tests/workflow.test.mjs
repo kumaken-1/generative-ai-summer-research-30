@@ -69,14 +69,12 @@ test("browser smoke tests import Playwright directly and cannot skip a missing d
   assert.doesNotMatch(smokeTest, /createRequire|playwright is not installed|\bskip\s*:/);
 });
 
-test("GitHub Pages artifact explicitly includes only the public power images", async () => {
+test("配信対象は明示列挙で、練習用素材を含む", async () => {
   const workflow = await readFile(workflowURL, "utf8");
 
   for (const asset of [
     "assets/favicon.svg",
-    "assets/seven-powers-720.webp",
-    "assets/seven-powers-1055.webp",
-    // 練習用素材が抜けると、添付が要る6問がリンク切れになる
+    // 練習用素材が抜けると、添付が要るチャレンジがリンク切れになる
     "assets/sample-notice.md",
     "assets/sample-draft.md",
     "assets/sample-screen.svg",
@@ -84,6 +82,6 @@ test("GitHub Pages artifact explicitly includes only the public power images", a
     assert.match(workflow, new RegExp(`cp ${asset.replaceAll(".", "\\.")} _site/assets/`));
   }
   assert.doesNotMatch(workflow, /cp\s+-R\s+assets\b/);
-  assert.doesNotMatch(workflow, /７つの力\.png/);
+  assert.doesNotMatch(workflow, /seven-powers/);
   assert.doesNotMatch(workflow, /cp[^\n]*(?:tests|docs|node_modules)/);
 });

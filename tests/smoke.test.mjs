@@ -15,410 +15,250 @@ const CONTENT_TYPES = {
   ".md": "text/markdown; charset=utf-8",
   ".svg": "image/svg+xml",
 };
-const STORAGE_KEY = "ai-summer-research-30-progress-v2";
+const STORAGE_KEY = "ai-summer-research-30-tried-v3";
 
-// ①送る → ②自分の言葉で返す → ③使い方を決める、の順にしかクリアできない。
-async function completeThreeSteps(page, verdict = "直せば使える") {
-  await page.getByRole("button", { name: "AIに送った" }).click();
-  await page.getByRole("button", { name: "自分の言葉で返した" }).click();
-  await page.getByRole("button", { name: new RegExp(verdict) }).click();
-}
-  let server;
-  let baseURL;
+let server;
+let baseURL;
 
-  test.before(async () => {
-    server = createServer(async (request, response) => {
-      if (!["GET", "HEAD"].includes(request.method)) {
-        response.writeHead(405, { Allow: "GET, HEAD" });
+test.before(async () => {
+  server = createServer(async (request, response) => {
+    if (!["GET", "HEAD"].includes(request.method)) {
+      response.writeHead(405, { Allow: "GET, HEAD" });
+      response.end();
+      return;
+    }
+    try {
+      const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
+      let filePath = resolve(ROOT, `.${pathname}`);
+      if (filePath !== ROOT && !filePath.startsWith(`${ROOT}${sep}`)) {
+        response.writeHead(403);
         response.end();
         return;
       }
-      try {
-        const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
-        let filePath = resolve(ROOT, `.${pathname}`);
-        if (filePath !== ROOT && !filePath.startsWith(`${ROOT}${sep}`)) {
-          response.writeHead(403);
-          response.end();
-          return;
-        }
-        if ((await stat(filePath)).isDirectory()) filePath = resolve(filePath, "index.html");
-        if (filePath !== ROOT && !filePath.startsWith(`${ROOT}${sep}`)) {
-          response.writeHead(403);
-          response.end();
-          return;
-        }
-        const info = await stat(filePath);
-        response.writeHead(200, {
-          "Content-Length": info.size,
-          "Content-Type": CONTENT_TYPES[extname(filePath)] ?? "application/octet-stream",
-        });
-        if (request.method === "HEAD") response.end();
-        else createReadStream(filePath).pipe(response);
-      } catch {
-        response.writeHead(404);
-        response.end();
-      }
-    });
-    await new Promise((resolveListen, reject) => {
-      server.once("error", reject);
-      server.listen(0, "127.0.0.1", resolveListen);
-    });
-    const { port } = server.address();
-    baseURL = `http://127.0.0.1:${port}`;
+      if ((await stat(filePath)).isDirectory()) filePath = resolve(filePath, "index.html");
+      const info = await stat(filePath);
+      response.writeHead(200, {
+        "Content-Length": info.size,
+        "Content-Type": CONTENT_TYPES[extname(filePath)] ?? "application/octet-stream",
+      });
+      if (request.method === "HEAD") response.end();
+      else createReadStream(filePath).pipe(response);
+    } catch {
+      response.writeHead(404);
+      response.end();
+    }
   });
+  await new Promise((done, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", done);
+  });
+  baseURL = `http://127.0.0.1:${server.address().port}`;
+});
 
-  test.after(async () => {
-    await new Promise((resolveClose, reject) => {
-      server.close((error) => error ? reject(error) : resolveClose());
+test.after(async () => {
+  await new Promise((done, reject) => {
+    server.close((error) => (error ? reject(error) : done()));
+  });
+});
+
+async function withPage(run, viewport = { width: 390, height: 844 }) {
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport });
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async (text) => { window.__copied = text; } },
     });
   });
+  try {
+    await run(page);
+  } finally {
+    await browser.close();
+  }
+}
 
-  test("index and print pages never overflow horizontally at supported viewports", async () => {
-    const browser = await chromium.launch();
-    const viewports = [
+test("どの画面幅でも横にはみ出さない", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const viewport of [
       { width: 390, height: 844 },
       { width: 820, height: 1180 },
       { width: 1440, height: 1000 },
-    ];
-
-    try {
-      for (const viewport of viewports) {
-        const page = await browser.newPage({ viewport });
-        for (const pathname of ["/", "/print.html"]) {
-          await page.goto(`${baseURL}${pathname}`, { waitUntil: "networkidle" });
-          const dimensions = await page.evaluate(() => ({
-            clientWidth: document.documentElement.clientWidth,
-            scrollWidth: document.documentElement.scrollWidth,
-          }));
-          assert.ok(
-            dimensions.scrollWidth <= dimensions.clientWidth,
-            `${pathname} overflows at ${viewport.width}px: ${dimensions.scrollWidth} > ${dimensions.clientWidth}`,
-          );
-        }
-        await page.close();
+    ]) {
+      const page = await browser.newPage({ viewport });
+      for (const pathname of ["/", "/print.html"]) {
+        await page.goto(`${baseURL}${pathname}`, { waitUntil: "networkidle" });
+        const size = await page.evaluate(() => ({
+          client: document.documentElement.clientWidth,
+          scroll: document.documentElement.scrollWidth,
+        }));
+        assert.ok(size.scroll <= size.client, `${pathname} が ${viewport.width}px で溢れる`);
       }
-    } finally {
-      await browser.close();
+      await page.close();
     }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("一覧の絞り込みと、やってみたの記録が動く", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
+    await page.evaluate(() => localStorage.clear());
+    await page.reload({ waitUntil: "networkidle" });
+
+    assert.equal(await page.locator(".card").count(), 30);
+    assert.match(await page.locator("#summary").innerText(), /0\s*\/\s*30/);
+
+    await page.locator('[data-filter="photo"]').click();
+    assert.equal(await page.locator(".card").count(), 4);
+    await page.locator('[data-filter="all"]').click();
+    assert.equal(await page.locator(".card").count(), 30);
+
+    await page.locator('.card[data-challenge-id="1"] .card__open').click();
+    assert.equal(new URL(page.url()).hash, "#c-1");
+    await page.getByRole("button", { name: "やってみたことにする" }).click();
+    assert.match(await page.locator("#summary").innerText(), /1\s*\/\s*30/);
+
+    await page.reload({ waitUntil: "networkidle" });
+    assert.match(await page.locator("#summary").innerText(), /1\s*\/\s*30/);
+    assert.equal(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY), "[1]");
   });
+});
 
-  test("mobile primary controls are easy to tap and the full beginner path works", async () => {
-    const browser = await chromium.launch();
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-    await page.addInitScript(() => {
-      Object.defineProperty(navigator, "clipboard", {
-        configurable: true,
-        value: { writeText: async () => {} },
-      });
-    });
+test("1回目と2回目が分かれ、番号が通しで振られる", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${baseURL}/#c-5`, { waitUntil: "networkidle" });
+    const detail = page.locator("#challenge-detail");
 
-    const assertVisibleButtonsAreTallEnough = async (selector, label) => {
-      const heights = await page.locator(selector).evaluateAll((buttons) => buttons
-        .filter((button) => {
-          const style = getComputedStyle(button);
-          const rect = button.getBoundingClientRect();
-          return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
-        })
-        .map((button) => button.getBoundingClientRect().height));
-      assert.ok(heights.length > 0, `${label} has no visible controls`);
-      for (const height of heights) {
-        assert.ok(height >= 44, `${label} control is only ${height}px tall`);
-      }
-    };
+    assert.match(await detail.innerText(), /1回目 — 写真・資料を添付してから送る/);
+    assert.match(await detail.innerText(), /2回目 — 空欄をうめてから送る/);
+    assert.match(await page.locator(".reply").innerText(), /^返事が来ます/);
 
-    try {
-      await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
-      await assertVisibleButtonsAreTallEnough("#filters button", "filters");
-      await assertVisibleButtonsAreTallEnough(".quest-open", "quest open");
-      await assertVisibleButtonsAreTallEnough("#open-powers-guide", "powers guide open");
+    // 手順の番号は返事を挟んでも1に戻さない
+    const values = await page.locator(".steps__item").evaluateAll(
+      (items) => items.map((item) => Number(item.value)),
+    );
+    assert.deepEqual(values, values.map((_, index) => index + 1));
 
-      await page.getByRole("button", { name: /写真や文章/ }).click();
-      assert.equal(await page.locator(".quest-card").count(), 10);
-      await page.getByRole("button", { name: /すべて/ }).click();
-      await page.locator('.quest-card[data-quest-id="1"] .quest-open').click();
-      await assertVisibleButtonsAreTallEnough(".route-switch button", "route switch");
-      await assertVisibleButtonsAreTallEnough("[data-copy]", "copy");
-      await assertVisibleButtonsAreTallEnough(".detail-actions button", "detail actions");
-      await assertVisibleButtonsAreTallEnough("#close-dialog", "quest close");
-      await assertVisibleButtonsAreTallEnough(".hint-chip", "hint chips");
-      await assertVisibleButtonsAreTallEnough(".step-button:not([disabled])", "step buttons");
-      await page.locator('.route-switch button').last().click();
-      assert.equal(await page.locator('.route-switch button').last().getAttribute("aria-pressed"), "true");
-      await page.locator('[data-copy="first"]').click();
-      await completeThreeSteps(page);
-      assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
-      await page.getByRole("button", { name: "閉じる" }).click();
-      assert.equal(await page.locator("#quest-dialog[open]").count(), 0);
+    // 添付と文章は同じメッセージで、送信は1回
+    const stepText = await page.locator(".steps").first().innerText();
+    assert.match(stepText, /同じメッセージ/);
+    assert.match(stepText, /1回で送信/);
+  });
+});
 
-      await page.getByRole("button", { name: "7つの力を見る" }).click();
-      assert.equal(await page.locator("#powers-dialog[open]").count(), 1);
-      await assertVisibleButtonsAreTallEnough("#close-powers-dialog", "powers close");
-      await page.getByRole("button", { name: "7つの力の説明を閉じる" }).click();
-      assert.equal(await page.locator("#powers-dialog[open]").count(), 0);
-    } finally {
-      await browser.close();
+test("そのまま送る文と、空欄をうめる文が別物として示される", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${baseURL}/#c-5`, { waitUntil: "networkidle" });
+
+    const sendPrompt = await page.locator('[data-prompt="send"]').textContent();
+    await page.getByRole("button", { name: "この文章をコピー" }).click();
+    assert.equal(await page.evaluate(() => window.__copied), sendPrompt);
+
+    // 空欄は文の中の入力欄。組み立て結果を別に置かない。
+    assert.equal(await page.locator('[data-prompt="fill"]').count(), 1);
+    assert.equal(await page.locator('[data-prompt="fill"] #blank-input').count(), 1);
+
+    await page.locator(".hint").first().click();
+    const hint = await page.locator(".hint").first().textContent();
+    assert.equal(await page.locator("#blank-input").inputValue(), hint);
+
+    await page.locator("#blank-input").fill("じぶんの言葉");
+    await page.getByRole("button", { name: "うめた文をコピー" }).click();
+    const copied = await page.evaluate(() => window.__copied);
+    assert.match(copied, /じぶんの言葉/);
+    assert.notEqual(copied, sendPrompt);
+    assert.doesNotMatch(copied, /____/);
+
+    // 書いた言葉は端末に残さない
+    await page.reload({ waitUntil: "networkidle" });
+    assert.equal(await page.locator("#blank-input").inputValue(), "");
+    const stored = await page.evaluate((key) => localStorage.getItem(key) ?? "", STORAGE_KEY);
+    assert.ok(!stored.includes("じぶんの言葉"));
+  });
+});
+
+test("補足はマウスがなくても押して開け、指で押せる大きさがある", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${baseURL}/#c-5`, { waitUntil: "networkidle" });
+
+    const help = page.locator(".help__button").first();
+    const panel = page.locator(".help__panel").first();
+    assert.equal(await panel.evaluate((node) => node.hidden), true);
+    assert.equal(await help.getAttribute("aria-expanded"), "false");
+
+    await help.click();
+    assert.equal(await panel.evaluate((node) => node.hidden), false);
+    assert.equal(await help.getAttribute("aria-expanded"), "true");
+    assert.match(await panel.innerText(), /クリップ|1回|新しいメッセージ|長押し/);
+  });
+});
+
+test("携帯で、操作できるものが44px以上ある", async () => {
+  await withPage(async (page) => {
+    for (const id of [1, 5, 19, 27, 30]) {
+      await page.goto(`${baseURL}/#c-${id}`, { waitUntil: "networkidle" });
+      const small = await page.locator("#challenge-detail button, #challenge-detail input")
+        .evaluateAll((nodes) => nodes
+          .filter((node) => {
+            const rect = node.getBoundingClientRect();
+            return rect.height > 0 && rect.height < 44;
+          })
+          .map((node) => `${(node.textContent || node.id).trim()} h=${Math.round(node.getBoundingClientRect().height)}`));
+      assert.deepEqual(small, [], `c-${id} に小さすぎる操作がある`);
     }
+    await page.locator("#close-dialog").click();
+    const cardControls = await page.locator(".card__open, .filter-button")
+      .evaluateAll((nodes) => nodes
+        .filter((node) => node.getBoundingClientRect().height < 44).length);
+    assert.equal(cardControls, 0);
   });
+});
 
-  test("mobile quest browsing, detail, copy, completion, persistence, and hash flow", async () => {
-    const browser = await chromium.launch();
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-    await page.addInitScript(() => {
-      Object.defineProperty(navigator, "clipboard", {
-        configurable: true,
-        value: { writeText: async (text) => { window.__copiedText = text; } },
-      });
-    });
-
-    try {
-      await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
-      await page.evaluate(() => localStorage.clear());
-      await page.reload({ waitUntil: "networkidle" });
-      assert.equal(await page.locator(".quest-card").count(), 30);
-      assert.match(await page.locator("#power-summary").innerText(), /0\s*\/\s*60ポイント\s+0\s*\/\s*30題できた/);
-      assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+0\s*\/\s*9ポイント/);
-
-      await page.getByRole("button", { name: /写真や文章/ }).click();
-      assert.equal(await page.locator(".quest-card").count(), 10);
-
-      await page.getByRole("button", { name: /すべて/ }).click();
-      await page.locator('.quest-card[data-quest-id="1"]').getByRole("button", { name: "このクエストを見る" }).click();
-      assert.equal(new URL(page.url()).hash, "#quest-1");
-      assert.match(await page.locator("#quest-detail").innerText(), /このお題で経験する力/);
-      assert.match(await page.locator("#quest-detail").innerText(), /主となる力：対話の杖　＋1/);
-      assert.match(await page.locator("#quest-detail").innerText(), /一緒に使う力：主体性の剣　＋1/);
-      await page.getByRole("button", { name: "学校の困りごとで試す" }).click();
-      const firstPrompt = await page.locator('[data-prompt="first"]').textContent();
-      await page.locator('[data-copy="first"]').click();
-      assert.equal(await page.evaluate(() => window.__copiedText), firstPrompt);
-      await page.getByText("コピーしました。ChatGPTなどの生成AIを開いて貼り付けてください。").waitFor();
-
-      // 順序は見た目で誘導するだけで、押せなくはしない。
-      // 生成AIを開けない人が「読んで考えた」参加を記録できなくなるため。
-      const replyButton = page.getByRole("button", { name: "自分の言葉で返した" });
-      assert.equal(await replyButton.isDisabled(), false);
-      assert.match(await replyButton.getAttribute("class"), /step-button--later/);
-      await page.getByRole("button", { name: "AIに送った" }).click();
-      assert.match(await page.locator("#progress").innerText(), /0\s*\/\s*30/);
-      assert.match(await replyButton.getAttribute("class"), /step-button--next/);
-
-      // 2通目は空欄を自分で埋めて組み立てる
-      const before = await page.locator('[data-prompt="follow-up"]').textContent();
-      await page.locator(".hint-chip").first().click();
-      const hint = await page.locator(".hint-chip").first().textContent();
-      const filled = await page.locator('[data-prompt="follow-up"]').textContent();
-      assert.notEqual(filled, before);
-      assert.ok(filled.includes(hint), `組み立てた文に「${hint}」が入っていない: ${filled}`);
-      await page.locator("#follow-up-input").fill("じぶんの言葉");
-      assert.match(await page.locator('[data-prompt="follow-up"]').textContent(), /じぶんの言葉/);
-      await page.locator('[data-copy="follow-up"]').click();
-      assert.match(await page.evaluate(() => window.__copiedText), /じぶんの言葉/);
-
-      await page.getByRole("button", { name: "自分の言葉で返した" }).click();
-      assert.match(await page.locator("#progress").innerText(), /0\s*\/\s*30/);
-      await page.getByRole("button", { name: /使わない/ }).click();
-
-      assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
-      assert.match(await page.locator("#power-summary").innerText(), /2\s*\/\s*60ポイント\s+1\s*\/\s*30題できた/);
-      assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+1\s*\/\s*9ポイント/);
-      assert.match(await page.locator("#power-summary").innerText(), /対話の杖\s+1\s*\/\s*11ポイント/);
-      await page.getByText("クリアしました。対話の杖と主体性の剣に1ポイントずつ加わりました。").waitFor();
-      // 「使わない」を選ぶこと自体が称号になる
-      assert.match(await page.locator("#progress").innerText(), /使わない勇気/);
-
-      await page.reload({ waitUntil: "networkidle" });
-      assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
-      assert.match(await page.locator("#power-summary").innerText(), /2\s*\/\s*60ポイント\s+1\s*\/\s*30題できた/);
-      assert.match(await page.locator('.quest-card[data-quest-id="1"]').innerText(), /クリア済み/);
-      assert.equal(await page.locator("#quest-dialog[open]").count(), 1);
-      assert.equal(await page.locator("#quest-detail .quest-number").first().innerText(), "1");
-      // 書いた言葉は端末に残さない
-      assert.equal(await page.locator("#follow-up-input").inputValue(), "");
-      assert.equal(
-        await page.evaluate((key) => localStorage.getItem(key).includes("じぶんの言葉"), STORAGE_KEY),
-        false,
-      );
-
-      await page.getByRole("button", { name: "自分の言葉で返した" }).click();
-      assert.match(await page.locator("#power-summary").innerText(), /0\s*\/\s*60ポイント\s+0\s*\/\s*30題できた/);
-      assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+0\s*\/\s*9ポイント/);
-      await page.getByText("記録を戻しました。対話の杖と主体性の剣から1ポイントずつ取り消しました。").waitFor();
-
-      await page.goto(`${baseURL}/#quest-12`, { waitUntil: "networkidle" });
-      assert.equal(await page.locator("#quest-dialog[open]").count(), 1);
-      assert.equal(await page.locator("#quest-detail .quest-number").first().innerText(), "12");
-      await page.getByRole("button", { name: "閉じる" }).click();
-      await page.waitForFunction(() => window.location.hash === "");
-      assert.equal(new URL(page.url()).hash, "");
-    } finally {
-      await browser.close();
-    }
+test("安全上の注意は畳まず、常に見えている", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${baseURL}/#c-5`, { waitUntil: "networkidle" });
+    assert.equal(await page.locator(".safety").isVisible(), true);
+    assert.match(await page.locator(".safety").innerText(), /個人が分かる情報/);
+    assert.match(
+      await page.locator("#challenge-detail").innerText(),
+      /名前など個人が分かる言葉は書かないでください。/,
+    );
   });
+});
 
-  test("reset requires confirmation and storage failures keep in-tab progress usable", async () => {
-    const browser = await chromium.launch();
-    const page = await browser.newPage();
+test("URLで直接ひらけ、共有できる", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${baseURL}/#c-12`, { waitUntil: "networkidle" });
+    assert.equal(await page.locator("#challenge-dialog[open]").count(), 1);
 
-    try {
-      await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
-      await page.locator('.quest-card[data-quest-id="1"]').getByRole("button", { name: "このクエストを見る" }).click();
-      await completeThreeSteps(page);
-      await page.getByRole("button", { name: "閉じる" }).click();
+    await page.getByRole("button", { name: "このチャレンジのURLをコピー" }).click();
+    assert.match(await page.evaluate(() => window.__copied), /#c-12$/);
 
-      await page.getByRole("button", { name: "進み具合をリセット" }).click();
-      await page.getByRole("button", { name: "やめる" }).click();
-      assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
-      await page.getByRole("button", { name: "進み具合をリセット" }).click();
-      await page.getByRole("button", { name: "リセットする" }).click();
-      assert.match(await page.locator("#progress").innerText(), /0\s*\/\s*30/);
-      await page.getByText("進み具合をリセットしました").waitFor();
-      assert.equal(await page.locator("#reset-progress").evaluate((node) => node === document.activeElement), true);
-
-      await page.addInitScript((key) => {
-        const originalSetItem = Storage.prototype.setItem;
-        Storage.prototype.setItem = function setItem(name, value) {
-          if (name === key) throw new Error("blocked");
-          return originalSetItem.call(this, name, value);
-        };
-      }, STORAGE_KEY);
-      await page.reload({ waitUntil: "networkidle" });
-      await page.getByText("この端末では進み具合を保存できません。印刷用マップをご利用ください。").waitFor();
-      await page.locator('.quest-card[data-quest-id="2"]').getByRole("button", { name: "このクエストを見る" }).click();
-      await completeThreeSteps(page);
-      assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
-    } finally {
-      await browser.close();
-    }
+    await page.locator("#close-dialog").click();
+    await page.waitForFunction(() => window.location.hash === "");
+    assert.equal(await page.locator("#challenge-dialog[open]").count(), 0);
   });
+});
 
-  test("迷ったときの候補・共通注意の折りたたみ・URL共有が動く", async () => {
-    const browser = await chromium.launch();
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-    await page.addInitScript(() => {
-      Object.defineProperty(navigator, "clipboard", {
-        configurable: true,
-        value: { writeText: async (text) => { window.__copiedText = text; } },
-      });
-    });
+test("記録の削除は確認をはさむ", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
+    await page.evaluate(() => localStorage.clear());
+    await page.reload({ waitUntil: "networkidle" });
 
-    try {
-      await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
+    await page.locator('.card[data-challenge-id="2"] .card__open').click();
+    await page.getByRole("button", { name: "やってみたことにする" }).click();
+    await page.locator("#close-dialog").click();
+    assert.match(await page.locator("#summary").innerText(), /1\s*\/\s*30/);
 
-      // 候補は日付ではなく「まだ試していないもの」から出る
-      const pick = page.locator("#suggestion");
-      await pick.locator("[data-open]").waitFor();
-      const pickId = await pick.locator("[data-open]").getAttribute("data-open");
-      assert.equal(pickId, "1", "未クリアなら最初のクエストから出す");
+    await page.getByRole("button", { name: "記録を消す" }).click();
+    await page.getByRole("button", { name: "やめる" }).click();
+    assert.match(await page.locator("#summary").innerText(), /1\s*\/\s*30/);
 
-      // 「別のクエストにする」で候補を送れる。進み具合は変わらない。
-      await pick.getByRole("button", { name: "別のクエストにする" }).click();
-      assert.equal(await pick.locator("[data-open]").getAttribute("data-open"), "2");
-      assert.match(await page.locator("#progress").innerText(), /0\s*\/\s*30/);
-
-      await pick.locator("[data-open]").click();
-      assert.equal(new URL(page.url()).hash, "#quest-2");
-
-      // 安全上の注意は畳まない。入力欄のある画面なので常に見えている必要がある。
-      assert.equal(await page.locator(".safety-banner").isVisible(), true);
-
-      // 畳むのは材料の扱いなど、安全以外の定型文だけ。
-      // 折りたたみ中の中身は content-visibility で隠れるため、
-      // 要素の可視判定ではなく details の開閉状態と実際の高さで確かめる。
-      const details = page.locator(".reference-details");
-      assert.equal(await details.evaluate((node) => node.open), false);
-      const collapsedHeight = (await details.boundingBox()).height;
-      await details.locator("summary").click();
-      assert.equal(await details.evaluate((node) => node.open), true);
-      const expandedHeight = (await details.boundingBox()).height;
-      assert.ok(
-        expandedHeight > collapsedHeight * 2,
-        `折りたたみが開いていない: ${collapsedHeight} -> ${expandedHeight}`,
-      );
-      assert.match(await details.innerText(), /AIの答えは完成品ではなく材料/);
-      assert.doesNotMatch(await details.innerText(), /児童・保護者・職員の名前/);
-      assert.equal(await page.locator(".safety-banner").isVisible(), true);
-
-      await page.getByRole("button", { name: "このクエストのURLをコピー" }).click();
-      const copied = await page.evaluate(() => window.__copiedText);
-      assert.ok(copied.endsWith("#quest-2"), `共有URLが不正: ${copied}`);
-      await page.getByText("このクエストのURLをコピーしました").waitFor();
-
-      // ルートの選択は次のクエストにも引き継がれる
-      await page.getByRole("button", { name: "学校の困りごとで試す" }).click();
-      await page.getByRole("button", { name: "閉じる" }).click();
-      await page.locator('.quest-card[data-quest-id="7"] .quest-open').click();
-      assert.equal(
-        await page.getByRole("button", { name: "学校の困りごとで試す" }).getAttribute("aria-pressed"),
-        "true",
-      );
-    } finally {
-      await browser.close();
-    }
-  });
-
-  test("最終回はクリア済みのクエスト名を入力例に差し込む", async () => {
-    const browser = await chromium.launch();
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-
-    try {
-      await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
-      await page.evaluate(() => localStorage.clear());
-      await page.reload({ waitUntil: "networkidle" });
-
-      await page.goto(`${baseURL}/#quest-30`, { waitUntil: "networkidle" });
-      const before = await page.locator('[data-prompt="first"]').textContent();
-      assert.doesNotMatch(before, /\{\{cleared\}\}/);
-      assert.match(before, /いくつかのクエスト/);
-      await page.getByRole("button", { name: "閉じる" }).click();
-
-      await page.locator('.quest-card[data-quest-id="6"] .quest-open').click();
-      const clearedTitle = await page.locator("#dialog-title").textContent();
-      await completeThreeSteps(page);
-      await page.getByRole("button", { name: "閉じる" }).click();
-
-      await page.goto(`${baseURL}/#quest-30`, { waitUntil: "networkidle" });
-      const after = await page.locator('[data-prompt="first"]').textContent();
-      assert.doesNotMatch(after, /\{\{cleared\}\}/);
-      assert.ok(
-        after.includes(clearedTitle),
-        `クリア済みの「${clearedTitle}」が差し込まれていない: ${after}`,
-      );
-    } finally {
-      await browser.close();
-    }
-  });
-
-  test("seven powers guide loads its image on first open and restores focus on close", async () => {
-    const browser = await chromium.launch();
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-
-    try {
-      const imageResponses = [];
-      page.on("response", (response) => {
-        if (response.url().includes("seven-powers-")) imageResponses.push(response.url());
-      });
-      await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
-      assert.equal(imageResponses.length, 0);
-      assert.equal(await page.locator("#powers-guide-list li").count(), 7);
-      assert.match(await page.locator("#powers-guide-list li").first().innerText(), /主体性の剣/);
-      assert.match(await page.locator("#powers-guide-list li").last().innerText(), /仕上げのたい焼き/);
-
-      const opener = page.getByRole("button", { name: "7つの力を見る" });
-      await opener.click();
-      assert.equal(await page.locator("#powers-dialog[open]").count(), 1);
-      await page.locator("#powers-dialog img").waitFor();
-      await page.waitForFunction(() => performance.getEntriesByType("resource")
-        .some((entry) => entry.name.includes("seven-powers-")));
-      assert.ok(imageResponses.length > 0);
-      assert.equal(
-        await page.locator("#close-powers-dialog").evaluate((node) => node === document.activeElement),
-        true,
-      );
-
-      await page.getByRole("button", { name: "7つの力の説明を閉じる" }).click();
-      assert.equal(await page.locator("#powers-dialog[open]").count(), 0);
-      assert.equal(await opener.evaluate((node) => node === document.activeElement), true);
-    } finally {
-      await browser.close();
-    }
-  });
+    await page.getByRole("button", { name: "記録を消す" }).click();
+    await page.getByRole("button", { name: "消す" }).click();
+    assert.match(await page.locator("#summary").innerText(), /0\s*\/\s*30/);
+  }, { width: 1280, height: 900 });
+});
