@@ -231,7 +231,7 @@ async function completeThreeSteps(page, verdict = "直せば使える") {
       assert.match(await page.locator("#power-summary").innerText(), /2\s*\/\s*60ポイント\s+1\s*\/\s*30題できた/);
       assert.match(await page.locator('.quest-card[data-quest-id="1"]').innerText(), /クリア済み/);
       assert.equal(await page.locator("#quest-dialog[open]").count(), 1);
-      assert.match(await page.locator("#quest-detail").innerText(), /クエスト 1/);
+      assert.equal(await page.locator("#quest-detail .quest-number").first().innerText(), "1");
       // 書いた言葉は端末に残さない
       assert.equal(await page.locator("#follow-up-input").inputValue(), "");
       assert.equal(
@@ -246,7 +246,7 @@ async function completeThreeSteps(page, verdict = "直せば使える") {
 
       await page.goto(`${baseURL}/#quest-12`, { waitUntil: "networkidle" });
       assert.equal(await page.locator("#quest-dialog[open]").count(), 1);
-      assert.match(await page.locator("#quest-detail").innerText(), /クエスト 12/);
+      assert.equal(await page.locator("#quest-detail .quest-number").first().innerText(), "12");
       await page.getByRole("button", { name: "閉じる" }).click();
       await page.waitForFunction(() => window.location.hash === "");
       assert.equal(new URL(page.url()).hash, "");
