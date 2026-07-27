@@ -188,9 +188,16 @@ test("補足はマウスがなくても押して開け、指で押せる大き�
     assert.equal(await panel.evaluate((node) => node.hidden), true);
     assert.equal(await help.getAttribute("aria-expanded"), "false");
 
+    // マウスは乗せた時点で開く（ホバー）
+    await help.hover();
+    assert.equal(await panel.evaluate((node) => node.hidden), false);
+
+    // 押した場合は、そのあと離れても開いたまま
     await help.click();
     assert.equal(await panel.evaluate((node) => node.hidden), false);
     assert.equal(await help.getAttribute("aria-expanded"), "true");
+    await page.locator("#dialog-title").hover();
+    assert.equal(await panel.evaluate((node) => node.hidden), false, "押して開いたものが閉じてしまう");
     assert.match(await panel.innerText(), /クリップ|1回|新しいメッセージ|長押し/);
   });
 });
@@ -258,7 +265,7 @@ test("記録の削除は確認をはさむ", async () => {
     assert.match(await page.locator("#summary").innerText(), /1\s*\/\s*30/);
 
     await page.getByRole("button", { name: "記録を消す" }).click();
-    await page.getByRole("button", { name: "消す" }).click();
+    await page.getByRole("button", { name: "消す", exact: true }).click();
     assert.match(await page.locator("#summary").innerText(), /0\s*\/\s*30/);
   }, { width: 1280, height: 900 });
 });

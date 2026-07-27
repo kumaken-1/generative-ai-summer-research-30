@@ -178,10 +178,19 @@ function helpBlock(helpId) {
     "aria-expanded": "false",
     "aria-controls": `help-${helpId}`,
   }, [createIcon("help", { size: 16 }), el("span", { text: "くわしく" })]);
+
   // マウスがない端末でも届くよう、押しても乗せても開く。
+  // 乗せて開いたものは離れれば閉じ、押して開いたものは押すまで開いたまま。
+  // 両方を「切り替え」にすると、マウスで押したとき開いた直後に閉じてしまう。
+  const setOpen = (open) => {
+    panel.hidden = !open;
+    button.setAttribute("aria-expanded", String(open));
+  };
   button.addEventListener("mouseenter", () => {
-    panel.hidden = false;
-    button.setAttribute("aria-expanded", "true");
+    if (button.dataset.pinned !== "true") setOpen(true);
+  });
+  button.addEventListener("mouseleave", () => {
+    if (button.dataset.pinned !== "true") setOpen(false);
   });
   return el("span", { className: "help" }, [button, panel]);
 }
@@ -440,8 +449,10 @@ document.addEventListener("click", (event) => {
   } else if (button.dataset.help) {
     const panel = detailRoot.querySelector(`#help-${button.dataset.help}`);
     if (panel) {
-      panel.hidden = !panel.hidden;
-      button.setAttribute("aria-expanded", String(!panel.hidden));
+      const pinned = button.dataset.pinned === "true";
+      button.dataset.pinned = String(!pinned);
+      panel.hidden = pinned;
+      button.setAttribute("aria-expanded", String(!pinned));
     }
   } else if (button.dataset.toggleTried) {
     tried = toggleTried(tried, Number(button.dataset.toggleTried));
