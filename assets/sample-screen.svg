@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" width="800" height="560" role="img" aria-label="練習用サンプル。架空の見学会申込み案内画面。日付が小さく、締切と持ち物の記載が分かれている。">
+  <title>練習用サンプル：架空の案内画面</title>
+  <desc>「生成AI 夏の自由研究30」の練習用素材です。実在の施設・団体とは関係ありません。見落としを探す練習に使います。</desc>
+
+  <rect width="800" height="560" fill="#ffffff"/>
+  <rect x="0" y="0" width="800" height="56" fill="#2d6a73"/>
+  <text x="24" y="35" font-family="sans-serif" font-size="19" font-weight="bold" fill="#ffffff">みどり自然の家（架空）</text>
+  <text x="640" y="35" font-family="sans-serif" font-size="14" fill="#cfe4e6">ログイン</text>
+
+  <text x="24" y="104" font-family="sans-serif" font-size="26" font-weight="bold" fill="#203047">夏の見学会 参加申込み</text>
+  <rect x="24" y="120" width="120" height="4" fill="#b45d34"/>
+
+  <text x="24" y="160" font-family="sans-serif" font-size="15" fill="#203047">自然観察と川遊びを組み合わせた見学会です。どなたでもご参加いただけます。</text>
+  <text x="24" y="184" font-family="sans-serif" font-size="15" fill="#203047">当日は現地集合・現地解散となります。送迎バスの運行はありません。</text>
+
+  <rect x="24" y="212" width="360" height="128" fill="#f5f9f8" stroke="#dce2e7"/>
+  <text x="40" y="238" font-family="sans-serif" font-size="13" font-weight="bold" fill="#5c6878">開催概要</text>
+  <text x="40" y="264" font-family="sans-serif" font-size="14" fill="#203047">場所：みどり川 河川敷 第2広場</text>
+  <text x="40" y="288" font-family="sans-serif" font-size="14" fill="#203047">時間：午前9時30分 集合</text>
+  <text x="40" y="312" font-family="sans-serif" font-size="10" fill="#8a94a0">開催日：2026年8月9日（日）※雨天中止</text>
+
+  <rect x="408" y="212" width="368" height="128" fill="#fffaf0" stroke="#d9c69d"/>
+  <text x="424" y="238" font-family="sans-serif" font-size="13" font-weight="bold" fill="#9b5d13">参加費</text>
+  <text x="424" y="266" font-family="sans-serif" font-size="20" font-weight="bold" fill="#203047">おとな 800円</text>
+  <text x="424" y="292" font-family="sans-serif" font-size="14" fill="#203047">こども 400円（3歳以下は無料）</text>
+  <text x="424" y="316" font-family="sans-serif" font-size="11" fill="#8a94a0">当日、受付にて現金でお支払いください。</text>
+
+  <text x="24" y="380" font-family="sans-serif" font-size="15" font-weight="bold" fill="#203047">持ち物</text>
+  <text x="24" y="404" font-family="sans-serif" font-size="14" fill="#203047">帽子・飲み物・タオル・ぬれてもよい靴</text>
+  <text x="24" y="428" font-family="sans-serif" font-size="11" fill="#8a94a0">※着替えについては、川に入る場合のみ必要です。</text>
+
+  <rect x="24" y="452" width="200" height="44" rx="6" fill="#2d6a73"/>
+  <text x="70" y="480" font-family="sans-serif" font-size="16" font-weight="bold" fill="#ffffff">申し込む</text>
+
+  <text x="244" y="470" font-family="sans-serif" font-size="10" fill="#8a94a0">申込締切：2026年7月31日</text>
+  <text x="244" y="486" font-family="sans-serif" font-size="10" fill="#8a94a0">定員に達し次第、締め切ります。</text>
+
+  <text x="24" y="530" font-family="sans-serif" font-size="10" fill="#a4adb8">この画像は練習用のサンプルです。実在の施設・団体とは関係ありません。</text>
+</svg>

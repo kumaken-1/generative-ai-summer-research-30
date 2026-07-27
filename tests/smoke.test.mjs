@@ -12,8 +12,17 @@ const CONTENT_TYPES = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
+  ".md": "text/markdown; charset=utf-8",
   ".svg": "image/svg+xml",
 };
+const STORAGE_KEY = "ai-summer-research-30-progress-v2";
+
+// ①送る → ②自分の言葉で返す → ③使い方を決める、の順にしかクリアできない。
+async function completeThreeSteps(page, verdict = "直せば使える") {
+  await page.getByRole("button", { name: "AIに送った" }).click();
+  await page.getByRole("button", { name: "自分の言葉で返した" }).click();
+  await page.getByRole("button", { name: new RegExp(verdict) }).click();
+}
   let server;
   let baseURL;
 
@@ -131,10 +140,12 @@ const CONTENT_TYPES = {
       await assertVisibleButtonsAreTallEnough("[data-copy]", "copy");
       await assertVisibleButtonsAreTallEnough(".detail-actions button", "detail actions");
       await assertVisibleButtonsAreTallEnough("#close-dialog", "quest close");
+      await assertVisibleButtonsAreTallEnough(".hint-chip", "hint chips");
+      await assertVisibleButtonsAreTallEnough(".step-button:not([disabled])", "step buttons");
       await page.locator('.route-switch button').last().click();
       assert.equal(await page.locator('.route-switch button').last().getAttribute("aria-pressed"), "true");
       await page.locator('[data-copy="first"]').click();
-      await page.getByRole("button", { name: "できたことにする" }).click();
+      await completeThreeSteps(page);
       assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
       await page.getByRole("button", { name: "閉じる" }).click();
       assert.equal(await page.locator("#quest-dialog[open]").count(), 0);
@@ -165,7 +176,7 @@ const CONTENT_TYPES = {
       await page.reload({ waitUntil: "networkidle" });
       assert.equal(await page.locator(".quest-card").count(), 30);
       assert.match(await page.locator("#power-summary").innerText(), /0\s*\/\s*60ポイント\s+0\s*\/\s*30題できた/);
-      assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+0\s*\/\s*10ポイント/);
+      assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+0\s*\/\s*9ポイント/);
 
       await page.getByRole("button", { name: /写真や文章/ }).click();
       assert.equal(await page.locator(".quest-card").count(), 10);
@@ -182,13 +193,35 @@ const CONTENT_TYPES = {
       assert.equal(await page.evaluate(() => window.__copiedText), firstPrompt);
       await page.getByText("コピーしました。ChatGPTなどの生成AIを開いて貼り付けてください。").waitFor();
 
-      await page.getByRole("button", { name: "できたことにする" }).click();
+      // ②③は①を終えるまで押せない
+      assert.equal(await page.getByRole("button", { name: "自分の言葉で返した" }).isDisabled(), true);
+      await page.getByRole("button", { name: "AIに送った" }).click();
+      assert.match(await page.locator("#progress").innerText(), /0\s*\/\s*30/);
+      assert.equal(await page.getByRole("button", { name: "自分の言葉で返した" }).isDisabled(), false);
+
+      // 2通目は空欄を自分で埋めて組み立てる
+      const before = await page.locator('[data-prompt="follow-up"]').textContent();
+      await page.locator(".hint-chip").first().click();
+      const hint = await page.locator(".hint-chip").first().textContent();
+      const filled = await page.locator('[data-prompt="follow-up"]').textContent();
+      assert.notEqual(filled, before);
+      assert.ok(filled.includes(hint), `組み立てた文に「${hint}」が入っていない: ${filled}`);
+      await page.locator("#follow-up-input").fill("じぶんの言葉");
+      assert.match(await page.locator('[data-prompt="follow-up"]').textContent(), /じぶんの言葉/);
+      await page.locator('[data-copy="follow-up"]').click();
+      assert.match(await page.evaluate(() => window.__copiedText), /じぶんの言葉/);
+
+      await page.getByRole("button", { name: "自分の言葉で返した" }).click();
+      assert.match(await page.locator("#progress").innerText(), /0\s*\/\s*30/);
+      await page.getByRole("button", { name: /使わない/ }).click();
+
       assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
       assert.match(await page.locator("#power-summary").innerText(), /2\s*\/\s*60ポイント\s+1\s*\/\s*30題できた/);
-      assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+1\s*\/\s*10ポイント/);
+      assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+1\s*\/\s*9ポイント/);
       assert.match(await page.locator("#power-summary").innerText(), /対話の杖\s+1\s*\/\s*11ポイント/);
-      await page.getByText("できたことにしました。対話の杖と主体性の剣に1ポイントずつ加わりました。").waitFor();
-      assert.equal(await page.getByRole("button", { name: "できた記録を取り消す" }).count(), 1);
+      await page.getByText("クリアしました。対話の杖と主体性の剣に1ポイントずつ加わりました。").waitFor();
+      // 「使わない」を選ぶこと自体が称号になる
+      assert.match(await page.locator("#progress").innerText(), /使わない勇気/);
 
       await page.reload({ waitUntil: "networkidle" });
       assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
@@ -196,12 +229,17 @@ const CONTENT_TYPES = {
       assert.match(await page.locator('.quest-card[data-quest-id="1"]').innerText(), /クリア済み/);
       assert.equal(await page.locator("#quest-dialog[open]").count(), 1);
       assert.match(await page.locator("#quest-detail").innerText(), /クエスト 1/);
-      assert.equal(await page.getByRole("button", { name: "できた記録を取り消す" }).count(), 1);
-      await page.getByRole("button", { name: "できた記録を取り消す" }).click();
+      // 書いた言葉は端末に残さない
+      assert.equal(await page.locator("#follow-up-input").inputValue(), "");
+      assert.equal(
+        await page.evaluate((key) => localStorage.getItem(key).includes("じぶんの言葉"), STORAGE_KEY),
+        false,
+      );
+
+      await page.getByRole("button", { name: "自分の言葉で返した" }).click();
       assert.match(await page.locator("#power-summary").innerText(), /0\s*\/\s*60ポイント\s+0\s*\/\s*30題できた/);
-      assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+0\s*\/\s*10ポイント/);
-      assert.match(await page.locator("#power-summary").innerText(), /対話の杖\s+0\s*\/\s*11ポイント/);
-      await page.getByText("できた記録を取り消しました。対話の杖と主体性の剣から1ポイントずつ取り消しました。").waitFor();
+      assert.match(await page.locator("#power-summary").innerText(), /主体性の剣\s+0\s*\/\s*9ポイント/);
+      await page.getByText("記録を戻しました。対話の杖と主体性の剣から1ポイントずつ取り消しました。").waitFor();
 
       await page.goto(`${baseURL}/#quest-12`, { waitUntil: "networkidle" });
       assert.equal(await page.locator("#quest-dialog[open]").count(), 1);
@@ -221,7 +259,7 @@ const CONTENT_TYPES = {
     try {
       await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
       await page.locator('.quest-card[data-quest-id="1"]').getByRole("button", { name: "このクエストを見る" }).click();
-      await page.getByRole("button", { name: "できたことにする" }).click();
+      await completeThreeSteps(page);
       await page.getByRole("button", { name: "閉じる" }).click();
 
       await page.getByRole("button", { name: "進み具合をリセット" }).click();
@@ -233,18 +271,102 @@ const CONTENT_TYPES = {
       await page.getByText("進み具合をリセットしました").waitFor();
       assert.equal(await page.locator("#reset-progress").evaluate((node) => node === document.activeElement), true);
 
-      await page.addInitScript(() => {
+      await page.addInitScript((key) => {
         const originalSetItem = Storage.prototype.setItem;
-        Storage.prototype.setItem = function setItem(key, value) {
-          if (key === "ai-summer-research-30-progress-v1") throw new Error("blocked");
-          return originalSetItem.call(this, key, value);
+        Storage.prototype.setItem = function setItem(name, value) {
+          if (name === key) throw new Error("blocked");
+          return originalSetItem.call(this, name, value);
         };
-      });
+      }, STORAGE_KEY);
       await page.reload({ waitUntil: "networkidle" });
       await page.getByText("この端末では進み具合を保存できません。印刷用マップをご利用ください。").waitFor();
       await page.locator('.quest-card[data-quest-id="2"]').getByRole("button", { name: "このクエストを見る" }).click();
-      await page.getByRole("button", { name: "できたことにする" }).click();
+      await completeThreeSteps(page);
       assert.match(await page.locator("#progress").innerText(), /1\s*\/\s*30/);
+    } finally {
+      await browser.close();
+    }
+  });
+
+  test("迷ったときの候補・共通注意の折りたたみ・URL共有が動く", async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: { writeText: async (text) => { window.__copiedText = text; } },
+      });
+    });
+
+    try {
+      await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
+
+      // 候補は日付ではなく「まだ試していないもの」から出る
+      const pick = page.locator("#suggestion");
+      await pick.locator("[data-open]").waitFor();
+      const pickId = await pick.locator("[data-open]").getAttribute("data-open");
+      assert.equal(pickId, "1", "未クリアなら最初のクエストから出す");
+
+      // 「別のクエストにする」で候補を送れる。進み具合は変わらない。
+      await pick.getByRole("button", { name: "別のクエストにする" }).click();
+      assert.equal(await pick.locator("[data-open]").getAttribute("data-open"), "2");
+      assert.match(await page.locator("#progress").innerText(), /0\s*\/\s*30/);
+
+      await pick.locator("[data-open]").click();
+      assert.equal(new URL(page.url()).hash, "#quest-2");
+
+      // 毎回同じ定型文は既定で畳んでおき、肝心の入力例を画面外に押し出さない
+      const details = page.locator(".reference-details");
+      assert.equal(await details.evaluate((node) => node.open), false);
+      assert.equal(await page.getByText("安全に使うために").isVisible(), false);
+      await details.locator("summary").click();
+      assert.equal(await page.getByText("安全に使うために").isVisible(), true);
+
+      await page.getByRole("button", { name: "このクエストのURLをコピー" }).click();
+      const copied = await page.evaluate(() => window.__copiedText);
+      assert.ok(copied.endsWith("#quest-2"), `共有URLが不正: ${copied}`);
+      await page.getByText("このクエストのURLをコピーしました").waitFor();
+
+      // ルートの選択は次のクエストにも引き継がれる
+      await page.getByRole("button", { name: "学校の困りごとで試す" }).click();
+      await page.getByRole("button", { name: "閉じる" }).click();
+      await page.locator('.quest-card[data-quest-id="7"] .quest-open').click();
+      assert.equal(
+        await page.getByRole("button", { name: "学校の困りごとで試す" }).getAttribute("aria-pressed"),
+        "true",
+      );
+    } finally {
+      await browser.close();
+    }
+  });
+
+  test("最終回はクリア済みのクエスト名を入力例に差し込む", async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+
+    try {
+      await page.goto(`${baseURL}/`, { waitUntil: "networkidle" });
+      await page.evaluate(() => localStorage.clear());
+      await page.reload({ waitUntil: "networkidle" });
+
+      await page.goto(`${baseURL}/#quest-30`, { waitUntil: "networkidle" });
+      const before = await page.locator('[data-prompt="first"]').textContent();
+      assert.doesNotMatch(before, /\{\{cleared\}\}/);
+      assert.match(before, /いくつかのクエスト/);
+      await page.getByRole("button", { name: "閉じる" }).click();
+
+      await page.locator('.quest-card[data-quest-id="6"] .quest-open').click();
+      const clearedTitle = await page.locator("#dialog-title").textContent();
+      await completeThreeSteps(page);
+      await page.getByRole("button", { name: "閉じる" }).click();
+
+      await page.goto(`${baseURL}/#quest-30`, { waitUntil: "networkidle" });
+      const after = await page.locator('[data-prompt="first"]').textContent();
+      assert.doesNotMatch(after, /\{\{cleared\}\}/);
+      assert.ok(
+        after.includes(clearedTitle),
+        `クリア済みの「${clearedTitle}」が差し込まれていない: ${after}`,
+      );
     } finally {
       await browser.close();
     }

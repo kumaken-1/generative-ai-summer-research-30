@@ -54,6 +54,47 @@ test("README explains the beginner flow, mobile support, points, and image updat
   }
 });
 
+test("READMEが3ステップ・称号・練習素材と、入力欄の扱いを正しく説明している", async () => {
+  const readme = await read("../README.md");
+
+  for (const phrase of [
+    "AIに送った",
+    "自分の言葉で返した",
+    "使い方を決めた",
+    "順番は強制しません",
+    "1日に何個やっても、やらない日があってもかまいません",
+    "日付とは結びつけていません",
+    "「使わない」も立派な判断",
+    "称号",
+    "sample-notice.md",
+    "sample-draft.md",
+    "sample-screen.svg",
+    "端末にも保存しません",
+    "数が多い力ほど大切という意味ではありません",
+  ]) {
+    assert.ok(readme.includes(phrase), `README is missing: ${phrase}`);
+  }
+
+  // 入力欄を足したので、「入力欄がない」という古い説明を残さない
+  assert.ok(
+    !readme.includes("このサイトには入力欄がなく"),
+    "READMEに実態と合わない記述が残っている",
+  );
+});
+
+test("練習用の素材が架空であることを明示している", async () => {
+  for (const path of ["../assets/sample-notice.md", "../assets/sample-draft.md"]) {
+    const material = await read(path);
+    assert.match(material, /練習用/);
+    assert.match(material, /実在の[^\n]*とは関係ありません/);
+  }
+  const screen = await read("../assets/sample-screen.svg");
+  assert.match(screen, /<title>[^<]*練習用[^<]*<\/title>/);
+  assert.match(screen, /実在の[^<]*とは関係ありません/);
+  assert.doesNotMatch(screen, /(?:href|src)=["']https?:\/\//i);
+  assert.doesNotMatch(screen, /<script/i);
+});
+
 test("dual license files clearly cover code and content", async () => {
   const codeLicense = await read("../LICENSE-CODE");
   const contentLicense = await read("../LICENSE-CONTENT");

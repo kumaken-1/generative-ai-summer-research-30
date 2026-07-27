@@ -76,6 +76,10 @@ test("GitHub Pages artifact explicitly includes only the public power images", a
     "assets/favicon.svg",
     "assets/seven-powers-720.webp",
     "assets/seven-powers-1055.webp",
+    // 練習用素材が抜けると、添付が要る6問がリンク切れになる
+    "assets/sample-notice.md",
+    "assets/sample-draft.md",
+    "assets/sample-screen.svg",
   ]) {
     assert.match(workflow, new RegExp(`cp ${asset.replaceAll(".", "\\.")} _site/assets/`));
   }

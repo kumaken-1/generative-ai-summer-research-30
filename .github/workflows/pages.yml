@@ -53,6 +53,9 @@ jobs:
           cp assets/favicon.svg _site/assets/
           cp assets/seven-powers-720.webp _site/assets/
           cp assets/seven-powers-1055.webp _site/assets/
+          cp assets/sample-notice.md _site/assets/
+          cp assets/sample-draft.md _site/assets/
+          cp assets/sample-screen.svg _site/assets/
           touch _site/.nojekyll
 
       - name: Configure GitHub Pages

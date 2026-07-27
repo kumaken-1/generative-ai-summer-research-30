@@ -18,12 +18,23 @@ export function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+// 画面では入力欄になる空欄を、紙では手書きできる下線にする。
+export function printableFollowUp(followUp) {
+  return String(followUp.template).replace("____", "＿＿＿＿＿＿＿＿");
+}
+
+// 画面ではクリア済みのクエスト名が入る差し込み口を、紙では一般的な言い方にする。
+export function printableFirstPrompt(firstPrompt) {
+  return String(firstPrompt).replaceAll("{{cleared}}", "いくつかのクエスト");
+}
+
 function routeMarkup(label, route) {
   return `        <section class="print-route">
           <h3>${escapeHtml(label)}</h3>
           <p><strong>生成AIで使うもの：</strong>${escapeHtml(route.situation)}</p>
-          <p><strong>まず、この文章を生成AIに入力してみよう：</strong>${escapeHtml(route.firstPrompt)}</p>
-          <p><strong>AIの回答を読んだら、続けてこの文章を入力しよう：</strong>${escapeHtml(route.followUp)}</p>
+          <p><strong>まず、この文章を生成AIに入力してみよう：</strong>${escapeHtml(printableFirstPrompt(route.firstPrompt))}</p>
+          <p><strong>AIの回答を読んだら、続けてこの文章を入力しよう：</strong>${escapeHtml(printableFollowUp(route.followUp))}</p>
+          <p class="print-hints"><strong>書きにくいときの例：</strong>${escapeHtml(route.followUp.hints.join(" ／ "))}</p>
         </section>`;
 }
 
@@ -33,7 +44,7 @@ function questMarkup(quest) {
         <p><strong>事実を確かめる：</strong>${escapeHtml(quest.factCheck.method)}</p>`
     : "";
   return `      <article class="quest-card print-quest">
-        <p class="hand-check">□ 試した　□ 振り返った</p>
+        <p class="hand-check">□ ①送った　□ ②自分の言葉で返した　□ ③使い方を決めた</p>
         <p class="quest-number">クエスト ${quest.id}</p>
         <h2 class="quest-title">${escapeHtml(quest.title)}</h2>
         <p><strong>身につくこと：</strong>${escapeHtml(quest.ability)}</p>

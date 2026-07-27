@@ -98,7 +98,28 @@ test("全クエストが表示に必要なデータを持つ", () => {
       assert.deepEqual(Object.keys(quest[route]).sort(), ["firstPrompt", "followUp", "situation"]);
       assert.ok(quest[route].situation);
       assert.ok(quest[route].firstPrompt);
-      assert.ok(quest[route].followUp);
+      assert.deepEqual(Object.keys(quest[route].followUp).sort(), ["hints", "template"]);
+      assert.ok(quest[route].followUp.template);
+      assert.ok(Array.isArray(quest[route].followUp.hints));
+    }
+  }
+});
+
+test("2通目は自分で言葉を入れる穴あきで、例が3つ添えてある", () => {
+  for (const quest of quests) {
+    for (const route of ["daily", "school"]) {
+      const { template, hints } = quest[route].followUp;
+      assert.equal(
+        template.split("____").length - 1,
+        1,
+        `クエスト${quest.id}の${route}は空欄がちょうど1つ`,
+      );
+      assert.equal(hints.length, 3, `クエスト${quest.id}の${route}は例が3つ`);
+      for (const hint of hints) {
+        assert.ok(hint.trim().length > 0);
+        // 例は空欄に入れてそのまま通る語句にする（文末表現を含めない）
+        assert.doesNotMatch(hint, /てください。?$|。$/);
+      }
     }
   }
 });
@@ -127,14 +148,23 @@ test("11回目以降で写真・画像・文書を段階的に体験する", () 
 test("振り返りと対話で本人の判断を促す", () => {
   for (const quest of quests) {
     assert.match(quest.reflectPrompt, /あなた/);
-    assert.match(quest.daily.followUp, /私|自分|違和感|合わ|考え|好み|条件/);
-    assert.match(quest.school.followUp, /私|自分|違和感|合わ|考え|好み|条件/);
+    assert.match(quest.daily.followUp.template, /私|自分|違和感|合わ|考え|好み|条件|ほしい|残し|足し/);
+    assert.match(quest.school.followUp.template, /私|自分|違和感|合わ|考え|好み|条件|ほしい|残し|足し/);
   }
+});
+
+test("2通目の言い回しが60本とも同じ型に偏らない", () => {
+  const templates = quests.flatMap((quest) =>
+    [quest.daily.followUp.template, quest.school.followUp.template]);
+  assert.equal(templates.length, 60);
+  assert.ok(new Set(templates).size >= 20, `文型の種類が少なすぎる: ${new Set(templates).size}`);
+  const leadingWatashi = templates.filter((template) => template.startsWith("私は")).length;
+  assert.ok(leadingWatashi <= 40, `「私は」で始まる型が多すぎる: ${leadingWatashi}`);
 });
 
 test("事実確認が必要な回には具体的な確認方法がある", () => {
   const factChecks = quests.filter((quest) => quest.factCheck.required);
-  assert.deepEqual(factChecks.map((quest) => quest.id), [11, 15, 17, 26, 27]);
+  assert.deepEqual(factChecks.map((quest) => quest.id), [8, 11, 15, 17, 26, 27]);
   assert.ok(factChecks.every((quest) => quest.factCheck.method.length >= 10));
   assert.ok(factChecks.every((quest) => /原文|発行元|更新日|一次資料|公式|複数/.test(
     quest.factCheck.method,
@@ -144,9 +174,9 @@ test("事実確認が必要な回には具体的な確認方法がある", () =>
 test("入力例に個人情報や機密情報の入力を求めない", () => {
   const examples = quests.flatMap((quest) => [
     quest.daily.firstPrompt,
-    quest.daily.followUp,
+    quest.daily.followUp.template,
     quest.school.firstPrompt,
-    quest.school.followUp,
+    quest.school.followUp.template,
   ]).join("\n");
   for (const forbidden of [
     "児童名",
@@ -169,6 +199,42 @@ test("入力例に個人情報や機密情報の入力を求めない", () => {
     for (const route of ["daily", "school"]) {
       assert.match(quest[route].firstPrompt, /個人情報|名前や住所/);
       assert.match(quest[route].firstPrompt, /架空|公開/);
+    }
+  }
+});
+
+test("学校ルートの前置きが本文と二重にならない", () => {
+  const prefix = "個人情報を含まない架空・公開の内容で試します。";
+  for (const quest of quests) {
+    const body = quest.school.firstPrompt.slice(prefix.length);
+    assert.ok(
+      !body.includes("架空"),
+      `クエスト${quest.id}の学校ルートで「架空」が二重になっている: ${body}`,
+    );
+  }
+});
+
+test("体験の差し込み口は最終回だけに置く", () => {
+  for (const quest of quests) {
+    const hasMarker = [quest.daily.firstPrompt, quest.school.firstPrompt]
+      .some((prompt) => prompt.includes("{{cleared}}"));
+    assert.equal(hasMarker, quest.id === 30, `クエスト${quest.id}`);
+  }
+  const finale = quests[29];
+  for (const route of ["daily", "school"]) {
+    assert.equal(finale[route].firstPrompt.split("{{cleared}}").length - 1, 1);
+  }
+});
+
+test("貼り付け・添付を求める回は、素材が本文に直書きされていない", () => {
+  // 「貼り付け」なのに文面がプロンプト内に埋め込まれていると、貼り付ける必然性がなくなる
+  for (const quest of quests.filter((item) => item.inputMode === "paste")) {
+    for (const route of ["daily", "school"]) {
+      assert.match(
+        quest[route].firstPrompt,
+        /貼り付け|貼った|次の文|この文章|書き出し/,
+        `クエスト${quest.id}の${route}に貼り付ける対象の指示がない`,
+      );
     }
   }
 });

@@ -10,6 +10,18 @@
   --radius: 18px;
   --shadow: 0 8px 24px rgb(32 48 71 / 10%);
   --content-width: 1120px;
+
+  /* 役割ごとの色。混ぜないことで「説明／操作／考える／注意」を見分けられるようにする。 */
+  --action-line: #203047;
+  --action-bg: #fff;
+  --think-bg: #fdf5e3;
+  --think-line: #d8b45f;
+  --warn-ink: #8c3a1d;
+  --warn-line: #c8703f;
+  --warn-bg: #fdf1ea;
+  --done: #1f7a5c;
+
+  --label-size: 0.8rem;
 }
 
 *,
@@ -46,6 +58,20 @@ h2 {
   text-wrap: balance;
 }
 
+/* 見出しの階層をはっきりさせる。以前は本文とほぼ同じ大きさだった。 */
+h3 {
+  margin-block-end: 0.35rem;
+  font-size: var(--label-size);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+h4 {
+  margin-block: 0.75rem 0.25rem;
+  font-size: 0.95rem;
+}
+
 button {
   min-height: 44px;
   padding: 0.65rem 1rem;
@@ -58,8 +84,14 @@ button {
   cursor: pointer;
 }
 
-button:hover {
+button:hover:not(:disabled) {
   background: #f3f7f7;
+}
+
+button:disabled {
+  color: #9aa5b1;
+  cursor: not-allowed;
+  opacity: 0.75;
 }
 
 :focus-visible {
@@ -111,9 +143,16 @@ button:hover {
 }
 
 .hero__lead {
-  margin-block-end: 1.25rem;
+  margin-block-end: 0.5rem;
   font-size: clamp(1.05rem, 2vw, 1.3rem);
   font-weight: 700;
+}
+
+.hero__note {
+  margin-block-end: 1.25rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffe9a8;
 }
 
 .hero__tagline {
@@ -131,7 +170,15 @@ button:hover {
   padding-block: clamp(2rem, 5vw, 4rem) 5rem;
 }
 
-.progress-panel {
+.field-note {
+  margin-block-end: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.beginner-guide,
+.progress-panel,
+.suggestion {
   margin-block-end: 1.5rem;
   padding: clamp(1.25rem, 3vw, 2rem);
   border: 1px solid #dce6e5;
@@ -150,16 +197,37 @@ button:hover {
   margin-block-end: 0;
 }
 
-.progress-track {
-  overflow: hidden;
-  height: 0.75rem;
-  border-radius: 999px;
-  background: #e6ebed;
+.suggestion {
+  border-inline-start: 6px solid var(--media-area);
 }
 
-.progress-value {
-  height: 100%;
-  background: var(--text-area);
+.suggestion__eyebrow {
+  margin-block-end: 0.35rem;
+  font-size: var(--label-size);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--media-area);
+}
+
+.suggestion__title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-block-end: 0.25rem;
+  font-size: 1.25rem;
+}
+
+.suggestion__ability {
+  margin-block-end: 0.75rem;
+  color: var(--muted);
+}
+
+.suggestion__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block-end: 0.75rem;
 }
 
 .progress-meter {
@@ -169,11 +237,41 @@ button:hover {
 }
 
 .progress-count {
+  margin-block-end: 0.5rem;
   font-size: 1.1rem;
 }
 
 .progress-count strong {
   font-size: 1.5rem;
+}
+
+.verdict-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block-end: 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.verdict {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid #d3dbe2;
+  border-radius: 999px;
+  background: #f7fafb;
+}
+
+.verdict--skip {
+  border-color: var(--warn-line);
+  background: var(--warn-bg);
+}
+
+.verdict__label {
+  font-size: 0.9rem;
+  color: var(--muted);
 }
 
 .power-summary {
@@ -218,6 +316,17 @@ button:hover {
   margin-block-end: 0.25rem;
 }
 
+.power-item__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.power-item__points {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
 .power-item__description {
   margin-block-end: 0.5rem;
   font-size: 0.9rem;
@@ -226,6 +335,11 @@ button:hover {
 .power-item progress {
   width: 100%;
   accent-color: var(--text-area);
+}
+
+.power-icon {
+  flex: none;
+  color: var(--text-area);
 }
 
 .badge-list,
@@ -238,14 +352,28 @@ button:hover {
 }
 
 .badge {
-  padding: 0.35rem 0.75rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
   border: 1px solid #bdccd2;
   border-radius: 999px;
   background: #f5f9f8;
 }
 
-.badge--empty {
+.badge--earned {
+  border-color: var(--done);
+  font-weight: 700;
+  background: #eaf6f1;
+}
+
+.badge--locked {
   color: var(--muted);
+  background: transparent;
+}
+
+.badge__hint {
+  font-size: 0.8rem;
 }
 
 .storage-warning {
@@ -276,6 +404,12 @@ button:hover {
 
 .reset-confirmation button + button {
   margin-inline-start: 0.5rem;
+}
+
+.quiet-button {
+  border-color: #c3ccd4;
+  font-weight: 400;
+  color: var(--muted);
 }
 
 .filter-bar {
@@ -315,6 +449,9 @@ button:hover {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .quest-card[data-area="text"] {
@@ -329,6 +466,10 @@ button:hover {
   border-block-start: 6px solid var(--thinking-area);
 }
 
+.quest-card--complete {
+  background: #f7fbf9;
+}
+
 .quest-card__top,
 .quest-status,
 .detail-actions,
@@ -341,21 +482,52 @@ button:hover {
 
 .quest-card__top {
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  margin-block-end: 0;
+}
+
+.quest-card__favorite {
+  margin-inline-start: auto;
+  color: var(--media-area);
 }
 
 .quest-status {
+  align-items: center;
   justify-content: space-between;
+  margin-block: auto 0;
   font-size: 0.9rem;
+}
+
+.quest-steps {
+  display: flex;
+  gap: 0.3rem;
+  margin-block-end: 0;
+}
+
+.step-dot {
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border: 1px solid #c3ccd4;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.step-dot--done {
+  border-color: var(--done);
+  color: #fff;
+  background: var(--done);
 }
 
 .status {
   color: var(--muted);
 }
 
-.status--complete,
-.status--favorite {
-  color: var(--ink);
+.status--complete {
+  color: var(--done);
   font-weight: 700;
 }
 
@@ -363,10 +535,37 @@ button:hover {
   width: 100%;
 }
 
+/* 番号をエリア色のバッジにして、3つの世界を一目で見分けられるようにする。 */
+.quest-number {
+  display: grid;
+  place-items: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding-inline: 0.4rem;
+  border-radius: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  color: #fff;
+  background: var(--ink);
+}
+
+.quest-number--text {
+  background: var(--text-area);
+}
+
+.quest-number--media {
+  background: var(--media-area);
+}
+
+.quest-number--thinking {
+  background: var(--thinking-area);
+}
+
 .area-label {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  font-size: 0.85rem;
   font-weight: 700;
 }
 
@@ -387,27 +586,117 @@ button:hover {
   color: var(--thinking-area);
 }
 
-.quest-number {
-  font-variant-numeric: tabular-nums;
-  font-weight: 800;
-}
-
 .quest-title {
-  margin-block: 0.5rem;
+  margin-block: 0.25rem;
   font-size: 1.15rem;
 }
 
-.quest-meta,
-.prompt-label,
-.safety-note {
+.quest-power {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-block-end: 0;
+  font-size: 0.9rem;
   color: var(--muted);
 }
 
-.prompt-box,
-.safety-note {
+/* ---- ダイアログ内の4つの役割 ---- */
+
+.detail-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.step-tracker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block: 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.step-tracker__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid #c3ccd4;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.step-tracker__item--done {
+  border-color: var(--done);
+  color: var(--done);
+  background: #eaf6f1;
+  font-weight: 700;
+}
+
+.step-tracker__number {
+  display: grid;
+  place-items: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 999px;
+  background: #e6ebed;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.step-tracker__item--done .step-tracker__number {
+  color: #fff;
+  background: var(--done);
+}
+
+.detail-section {
+  margin-block: 1.5rem;
+}
+
+.detail-section p {
+  margin-block-end: 0.75rem;
+}
+
+/* 操作：実際にコピーして送る文。一番強く見せる。 */
+.action-block {
   padding: 1rem;
-  border-inline-start: 4px solid var(--text-area);
-  background: #f5f9f8;
+  border: 1px solid #d3dbe2;
+  border-radius: 0.9rem;
+  background: #fbfcfd;
+}
+
+.action-block__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-end: 0.5rem;
+  font-size: 1rem;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+.action-block__number {
+  display: grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--ink);
+  font-size: 0.95rem;
+}
+
+.prompt-box {
+  padding: 0.9rem 1rem;
+  border: 2px solid var(--action-line);
+  border-radius: 0.6rem;
+  background: var(--action-bg);
+  font-family: "BIZ UDGothic", "Yu Gothic", monospace;
+  font-size: 1.02rem;
+  line-height: 1.75;
 }
 
 .prompt-box,
@@ -417,16 +706,229 @@ button:hover {
   overflow-wrap: anywhere;
 }
 
-.detail-section {
-  margin-block: 1.5rem;
+.copy-button {
+  width: 100%;
+  margin-block-start: 0.6rem;
+  color: #fff;
+  background: var(--ink);
 }
 
-.detail-section h3 {
-  margin-block-end: 0.35rem;
+.copy-button:hover:not(:disabled) {
+  background: #34455e;
 }
 
-.detail-section p {
+.sample-link {
   margin-block-end: 0.75rem;
+  font-size: 0.9rem;
+}
+
+/* 考える：AIの答えへの自分の反応をつくる場所。 */
+.reflection {
+  position: relative;
+  padding: 0.9rem 1rem 0.9rem 2.6rem;
+  border-radius: 0.75rem;
+  background: var(--think-bg);
+  border-inline-start: 4px solid var(--think-line);
+}
+
+.reflection::before {
+  content: "？";
+  position: absolute;
+  inset-inline-start: 0.85rem;
+  inset-block-start: 0.75rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #a37a13;
+}
+
+.followup-builder {
+  margin-block: 1rem 0;
+}
+
+.followup-builder__label {
+  display: block;
+  margin-block-end: 0.4rem;
+  font-size: var(--label-size);
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.followup-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-block-end: 0.6rem;
+  font-size: 1rem;
+}
+
+.followup-line__fixed {
+  color: var(--muted);
+}
+
+.followup-input {
+  flex: 1 1 12rem;
+  min-width: 8rem;
+  min-height: 44px;
+  padding: 0.4rem 0.7rem;
+  border: 2px solid var(--think-line);
+  border-radius: 0.5rem;
+  font: inherit;
+  color: var(--ink);
+  background: #fffdf5;
+}
+
+.hint-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-end: 0.6rem;
+}
+
+.hint-chips__label {
+  font-size: var(--label-size);
+  color: var(--muted);
+}
+
+.hint-chip {
+  padding: 0.25rem 0.9rem;
+  border-color: var(--think-line);
+  font-size: 0.9rem;
+  font-weight: 400;
+  background: #fffdf5;
+}
+
+.step-button {
+  width: 100%;
+  margin-block-start: 0.75rem;
+  border-color: var(--done);
+  color: var(--done);
+}
+
+/* 次にやることだけを強調し、先の手順は控えめにする（押すことはできる） */
+.step-button--next {
+  box-shadow: 0 0 0 3px rgb(31 122 92 / 18%);
+}
+
+.step-button--later {
+  border-color: #c3ccd4;
+  color: var(--muted);
+}
+
+.step-button--done {
+  color: #fff;
+  background: var(--done);
+}
+
+.step-button--done:hover:not(:disabled) {
+  background: #196349;
+}
+
+.action-block--decide .verdict-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 0.75rem;
+}
+
+.verdict-choice {
+  display: grid;
+  gap: 0.15rem;
+  height: 100%;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  text-align: start;
+}
+
+.verdict-choice__note {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.verdict-choice--active {
+  color: #fff;
+  background: var(--done);
+}
+
+.verdict-choice--active .verdict-choice__note {
+  color: #dff0e8;
+}
+
+/* 注意：ここだけ警告色を使う。他の役割では使わない。 */
+.fact-check {
+  padding: 1rem 1rem 1rem 2.8rem;
+  position: relative;
+  border: 2px solid var(--warn-line);
+  border-radius: 0.75rem;
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+}
+
+.fact-check::before {
+  content: "！";
+  position: absolute;
+  inset-inline-start: 0.9rem;
+  inset-block-start: 0.85rem;
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--warn-line);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.fact-check h3 {
+  color: var(--warn-ink);
+}
+
+/* 安全上の注意。入力欄のある画面なので、畳まず常に見せる。 */
+.safety-banner {
+  display: flex;
+  align-items: start;
+  gap: 0.5rem;
+  margin-block: 1rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--warn-line);
+  border-radius: 0.6rem;
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  font-size: 0.9rem;
+}
+
+.safety-banner__mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--warn-line);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+/* 補足：全クエスト共通の定型文。既定で畳んでおく。 */
+.reference-details {
+  margin-block: 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px dashed #c3ccd4;
+  border-radius: 0.75rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.reference-details summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.reference-details ul {
+  margin-block-end: 0;
 }
 
 .route-switch button[aria-pressed="true"],
@@ -435,34 +937,25 @@ button:hover {
   background: var(--ink);
 }
 
-.reflection {
-  padding: 1rem;
-  border-radius: 0.75rem;
-  background: #f8f3e9;
-}
-
-.fact-check {
-  padding: 1rem;
-  border: 1px solid #d9c69d;
-  border-radius: 0.75rem;
-  background: #fffaf0;
-}
-
-.material-note {
-  margin-block: 1.5rem;
-  padding: 1rem;
-  border: 2px solid #b8c8ce;
-  border-radius: 0.75rem;
-}
-
-.material-note p,
-.material-note ul {
-  margin-block-end: 0;
-}
-
 .detail-actions {
   padding-block: 1rem;
   border-block: 1px solid #dce2e7;
+}
+
+.input-mode {
+  margin-block: 1rem;
+}
+
+.input-mode__label {
+  margin-block-end: 0.25rem;
+  font-weight: 700;
+}
+
+.quest-powers__row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-block-end: 0.25rem;
 }
 
 .related-quests {
@@ -504,23 +997,20 @@ dialog::backdrop {
 }
 
 .dialog-header {
+  position: sticky;
+  z-index: 2;
+  inset-block-start: 0;
   display: flex;
   align-items: start;
   justify-content: space-between;
   gap: 1rem;
   margin-block-end: 1rem;
+  padding-block: 0.25rem 0.75rem;
+  background: var(--surface);
 }
 
 .dialog-header h2 {
   margin-block-end: 0;
-}
-
-.powers-dialog__header {
-  position: sticky;
-  z-index: 2;
-  inset-block-start: 0;
-  padding-block: 0.25rem 0.75rem;
-  background: var(--surface);
 }
 
 .powers-dialog__body {
@@ -552,6 +1042,11 @@ dialog::backdrop {
 
 .powers-guide-list li {
   padding-inline-start: 0.25rem;
+}
+
+.powers-guide-list .power-icon {
+  vertical-align: -0.25em;
+  margin-inline-end: 0.35rem;
 }
 
 #toast {
@@ -597,7 +1092,8 @@ dialog::backdrop {
 
   .filter-list,
   .route-switch,
-  .detail-actions {
+  .detail-actions,
+  .suggestion__actions {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
   }
@@ -605,6 +1101,7 @@ dialog::backdrop {
   .filter-list button,
   .route-switch button,
   .detail-actions button,
+  .suggestion__actions button,
   #open-powers-guide {
     width: 100%;
   }
@@ -613,9 +1110,19 @@ dialog::backdrop {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* ヘッダーは固定表示なので、縦積みにすると画面を常時圧迫する */
   .dialog-header {
-    align-items: stretch;
-    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .dialog-header h2 {
+    font-size: 1.15rem;
+  }
+
+  .dialog-header button {
+    flex: none;
+    padding-inline: 0.9rem;
   }
 
   dialog {
@@ -623,6 +1130,14 @@ dialog::backdrop {
     max-height: calc(100vh - 1rem);
     max-height: calc(100dvh - 1rem);
     padding: 1rem;
+  }
+
+  .followup-input {
+    flex: 1 1 100%;
+  }
+
+  .badge__hint {
+    display: none;
   }
 }
 

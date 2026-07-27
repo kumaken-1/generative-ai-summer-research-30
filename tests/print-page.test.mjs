@@ -4,7 +4,12 @@ import test from "node:test";
 
 import { quests } from "../js/quests.js";
 import { POWER_DEFINITIONS } from "../js/powers.js";
-import { buildPrintPage, escapeHtml } from "../scripts/build-print-page.mjs";
+import {
+  buildPrintPage,
+  escapeHtml,
+  printableFirstPrompt,
+  printableFollowUp,
+} from "../scripts/build-print-page.mjs";
 
 const printPageUrl = new URL("../print.html", import.meta.url);
 
@@ -34,11 +39,11 @@ test("print.html contains complete representative routes and guidance", async ()
       quest.title,
       quest.ability,
       quest.daily.situation,
-      quest.daily.firstPrompt,
-      quest.daily.followUp,
+      printableFirstPrompt(quest.daily.firstPrompt),
+      printableFollowUp(quest.daily.followUp),
       quest.school.situation,
-      quest.school.firstPrompt,
-      quest.school.followUp,
+      printableFirstPrompt(quest.school.firstPrompt),
+      printableFollowUp(quest.school.followUp),
       quest.safety,
     ]) {
       assert.ok(html.includes(escapeHtml(text)), `quest ${id} is missing: ${text}`);
@@ -48,6 +53,24 @@ test("print.html contains complete representative routes and guidance", async ()
     }
   }
   assert.equal((html.match(/class="hand-check"/g) ?? []).length, 30);
+});
+
+test("印刷版は空欄を手書きできる下線にし、書きにくいときの例を添える", () => {
+  const sample = { template: "私は「____」が気になりました。", hints: ["ア", "イ", "ウ"] };
+  assert.equal(printableFollowUp(sample), "私は「＿＿＿＿＿＿＿＿」が気になりました。");
+  assert.doesNotMatch(printableFollowUp(sample), /____/);
+});
+
+test("印刷版は3ステップのチェック欄と、全30問の例を載せる", async () => {
+  const html = await readFile(printPageUrl, "utf8");
+  assert.match(html, /□ ①送った　□ ②自分の言葉で返した　□ ③使い方を決めた/);
+  assert.doesNotMatch(html, /____/, "画面用の空欄記号が紙面に残っている");
+  assert.equal((html.match(/class="print-hints"/g) ?? []).length, 60);
+  for (const quest of quests) {
+    assert.ok(html.includes(escapeHtml(quest.daily.followUp.hints.join(" ／ "))));
+  }
+  // 最終回の差し込み記号は、紙面にそのまま出さない
+  assert.doesNotMatch(html, /\{\{cleared\}\}/);
 });
 
 test("print.html uses explicit beginner labels and shows both powers", async () => {
