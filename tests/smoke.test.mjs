@@ -193,11 +193,14 @@ async function completeThreeSteps(page, verdict = "直せば使える") {
       assert.equal(await page.evaluate(() => window.__copiedText), firstPrompt);
       await page.getByText("コピーしました。ChatGPTなどの生成AIを開いて貼り付けてください。").waitFor();
 
-      // ②③は①を終えるまで押せない
-      assert.equal(await page.getByRole("button", { name: "自分の言葉で返した" }).isDisabled(), true);
+      // 順序は見た目で誘導するだけで、押せなくはしない。
+      // 生成AIを開けない人が「読んで考えた」参加を記録できなくなるため。
+      const replyButton = page.getByRole("button", { name: "自分の言葉で返した" });
+      assert.equal(await replyButton.isDisabled(), false);
+      assert.match(await replyButton.getAttribute("class"), /step-button--later/);
       await page.getByRole("button", { name: "AIに送った" }).click();
       assert.match(await page.locator("#progress").innerText(), /0\s*\/\s*30/);
-      assert.equal(await page.getByRole("button", { name: "自分の言葉で返した" }).isDisabled(), false);
+      assert.match(await replyButton.getAttribute("class"), /step-button--next/);
 
       // 2通目は空欄を自分で埋めて組み立てる
       const before = await page.locator('[data-prompt="follow-up"]').textContent();
@@ -315,12 +318,25 @@ async function completeThreeSteps(page, verdict = "直せば使える") {
       await pick.locator("[data-open]").click();
       assert.equal(new URL(page.url()).hash, "#quest-2");
 
-      // 毎回同じ定型文は既定で畳んでおき、肝心の入力例を画面外に押し出さない
+      // 安全上の注意は畳まない。入力欄のある画面なので常に見えている必要がある。
+      assert.equal(await page.locator(".safety-banner").isVisible(), true);
+
+      // 畳むのは材料の扱いなど、安全以外の定型文だけ。
+      // 折りたたみ中の中身は content-visibility で隠れるため、
+      // 要素の可視判定ではなく details の開閉状態と実際の高さで確かめる。
       const details = page.locator(".reference-details");
       assert.equal(await details.evaluate((node) => node.open), false);
-      assert.equal(await page.getByText("安全に使うために").isVisible(), false);
+      const collapsedHeight = (await details.boundingBox()).height;
       await details.locator("summary").click();
-      assert.equal(await page.getByText("安全に使うために").isVisible(), true);
+      assert.equal(await details.evaluate((node) => node.open), true);
+      const expandedHeight = (await details.boundingBox()).height;
+      assert.ok(
+        expandedHeight > collapsedHeight * 2,
+        `折りたたみが開いていない: ${collapsedHeight} -> ${expandedHeight}`,
+      );
+      assert.match(await details.innerText(), /AIの答えは完成品ではなく材料/);
+      assert.doesNotMatch(await details.innerText(), /児童・保護者・職員の名前/);
+      assert.equal(await page.locator(".safety-banner").isVisible(), true);
 
       await page.getByRole("button", { name: "このクエストのURLをコピー" }).click();
       const copied = await page.evaluate(() => window.__copiedText);
