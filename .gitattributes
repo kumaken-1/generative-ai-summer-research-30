@@ -1,0 +1,4 @@
+# print.html は js/challenges.js から生成し、テストで生成器の出力と完全一致を検査する。
+# Windows で clone したときに CRLF へ変換されると、内容が同じでもこの検査が落ちる。
+# 改行を LF に固定して、環境による偽陽性を防ぐ。
+* text=auto eol=lf

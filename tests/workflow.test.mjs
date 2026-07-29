@@ -62,6 +62,14 @@ test("installed dependencies are excluded from the public repository", async () 
   assert.match(gitignore, /^node_modules\/$/m);
 });
 
+// Windows で clone すると print.html が CRLF になり、生成器の出力との一致検査が
+// 内容が同じでも落ちる。改行を LF に固定して環境差による偽陽性を防ぐ。
+test("改行を LF に固定して、環境による偽陽性を防いでいる", async () => {
+  const attributes = await readFile(new URL("../.gitattributes", import.meta.url), "utf8");
+
+  assert.match(attributes, /^\*\s+text=auto\s+eol=lf$/m);
+});
+
 test("browser smoke tests import Playwright directly and cannot skip a missing dependency", async () => {
   const smokeTest = await readFile(new URL("./smoke.test.mjs", import.meta.url), "utf8");
 
