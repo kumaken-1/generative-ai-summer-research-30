@@ -89,4 +89,10 @@ test("404ページは自己完結していて、相対リンクで戻る", async
   assert.match(html, /<a\s+href="\.\/">[\s\S]*トップへ戻る[\s\S]*<\/a>/i);
   assert.doesNotMatch(html, /(?:src|href)=["']https?:\/\//i);
   assert.doesNotMatch(html, /<script/i);
+
+  // 巻名と語彙が本体とそろっていること（ここが取り残されやすい）
+  assert.ok(html.includes("生成AI 30のチャレンジⅠ"), "404ページの巻名が本体とずれている");
+  for (const word of ["夏の自由研究", "クエスト", "称号", "ポイント"]) {
+    assert.ok(!html.includes(word), `404ページに古い語が残っている: ${word}`);
+  }
 });
