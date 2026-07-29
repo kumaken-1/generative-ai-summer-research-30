@@ -31,6 +31,16 @@ test("HTMLがJavaScriptより先に、日本語の骨組みを出す", async () 
   assert.match(html, /1個だけでも、順番どおりでなくてもかまいません。/);
 });
 
+test("第2巻への行き来ができる", async () => {
+  const html = await read("../index.html");
+  assert.match(
+    html,
+    /<a\s+href="https:\/\/kumaken-1\.github\.io\/school-office-generative-ai-30\/">/,
+    "第2巻へのリンクが無い",
+  );
+  assert.match(html, /記録は巻ごとに別々です/);
+});
+
 test("ゲーム由来の仕掛けを画面から消してある", async () => {
   const html = await read("../index.html");
   const app = await read("../js/app.js");
