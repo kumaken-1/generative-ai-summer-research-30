@@ -21,17 +21,17 @@ test("GitHub Pages workflow has safe triggers, permissions, and concurrency", as
 test("GitHub Pages workflow tests and builds before uploading and deploying", async () => {
   const workflow = await readFile(workflowURL, "utf8");
   const requiredSteps = [
-    "actions/checkout@v4",
-    "actions/setup-node@v4",
+    "actions/checkout@v7",
+    "actions/setup-node@v7",
     "npm ci",
     "npx playwright install --with-deps chromium",
     "npm test",
     "npm run test:smoke",
     "npm run build:print",
     "git diff --exit-code -- print.html",
-    "actions/configure-pages@v5",
-    "actions/upload-pages-artifact@v3",
-    "actions/deploy-pages@v4",
+    "actions/configure-pages@v6",
+    "actions/upload-pages-artifact@v5",
+    "actions/deploy-pages@v5",
   ];
 
   let previousIndex = -1;
