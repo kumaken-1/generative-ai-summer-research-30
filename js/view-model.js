@@ -115,7 +115,7 @@ export function buildFilledText(template, value = "") {
 }
 
 // 手順の番号は「1回目」から「2回目」まで通しで振る。
-// 返事を挟んだ一続きの流れとして見せるため、途中で1に戻さない。
+// 回答を挟んだ一続きの流れとして見せるため、途中で1に戻さない。
 export function numberedSteps(challenge) {
   const send = challenge.send.steps.map((step, index) => ({ ...step, number: index + 1 }));
   const offset = send.length;
