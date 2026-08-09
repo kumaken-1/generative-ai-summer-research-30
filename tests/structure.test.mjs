@@ -31,13 +31,20 @@ test("HTMLがJavaScriptより先に、日本語の骨組みを出す", async () 
   assert.match(html, /1個だけでも、順番どおりでなくてもかまいません。/);
 });
 
-test("第2巻への行き来ができる", async () => {
+// シリーズの他の巻へ横並びで行ける。いまいる巻はリンクにせず現在地として示す。
+test("シリーズの他の巻へ行き来できる", async () => {
   const html = await read("../index.html");
-  assert.match(
-    html,
-    /<a\s+href="https:\/\/kumaken-1\.github\.io\/school-office-generative-ai-30\/">/,
-    "第2巻へのリンクが無い",
-  );
+  for (const url of [
+    "https://kumaken-1.github.io/school-office-generative-ai-30/",
+    "https://kumaken-1.github.io/lesson-improvement-ai-50/",
+    "https://kumaken-1.github.io/lesson-improvement-ai-30/",
+    "https://kumaken-1.github.io/inquiry-learning-ai-50/",
+  ]) {
+    assert.match(html, new RegExp(`<a[^>]+href="${url.replaceAll("/", "\/").replaceAll(".", "\.")}"`), `${url} へのリンクが無い`);
+  }
+  // いまいる巻は自分自身へのリンクにしない。
+  assert.doesNotMatch(html, /<a[^>]+href="https:\/\/kumaken-1\.github\.io\/generative-ai-summer-research-30\/"/);
+  assert.match(html, /aria-current="page"/, "現在地が示されていない");
   assert.match(html, /記録は巻ごとに別々です/);
 });
 
