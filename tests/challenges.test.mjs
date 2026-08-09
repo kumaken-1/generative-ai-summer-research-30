@@ -6,10 +6,10 @@ import { HELP_TEXTS, SEND_TYPES } from "../js/view-model.js";
 
 const EXPECTED_CATEGORY_COUNTS = {
   write: 8,
-  organize: 7,
-  expand: 6,
+  organize: 8,
+  expand: 4,
   verify: 5,
-  photo: 4,
+  photo: 5,
 };
 
 test("30件が1から30まで重複なく並ぶ", () => {
