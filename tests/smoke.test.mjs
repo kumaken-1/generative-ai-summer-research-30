@@ -111,7 +111,7 @@ test("一覧の絞り込みと、やってみたの記録が動く", async () =>
     assert.match(await page.locator("#summary").innerText(), /0\s*\/\s*30/);
 
     await page.locator('[data-filter="photo"]').click();
-    assert.equal(await page.locator(".card").count(), 4);
+    assert.equal(await page.locator(".card").count(), 5);
     await page.locator('[data-filter="all"]').click();
     assert.equal(await page.locator(".card").count(), 30);
 
