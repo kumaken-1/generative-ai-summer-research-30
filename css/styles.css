@@ -386,9 +386,66 @@ button:hover {
   margin-block-end: 1.5rem;
 }
 
+/* 1回目→回答→2回目を、1本の流れとして見せる。
+   丸い番号は、自分が送る2回にだけ振る。AIの回答は自分の操作ではないので番号を持たない。 */
+.stage-flow {
+  position: relative;
+  counter-reset: stage;
+}
+
+.stage-flow::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset-inline-start: 1.05rem;
+  inset-block-start: 0.9rem;
+  inset-block-end: 0.9rem;
+  width: 2px;
+  background: #c3ccd4;
+}
+
+.stage-flow > .block,
+.stage-flow > .reply {
+  position: relative;
+  z-index: 1;
+}
+
+.stage-flow > .block::before {
+  counter-increment: stage;
+  content: counter(stage);
+  position: absolute;
+  z-index: 2;
+  inset-inline-start: 0.1rem;
+  inset-block-start: 0.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* 番号の代わりに、線の上にピンクの丸だけを置いて流れを切らない。 */
+.stage-flow > .reply::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset-inline-start: 0.48rem;
+  inset-block-start: 0.7rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 2px solid var(--reply-line);
+  border-radius: 50%;
+  background: var(--reply-bg);
+}
+
 .block {
   margin-block-end: 1rem;
-  padding-inline-start: 0.9rem;
+  padding-inline-start: 2.6rem;
   border-inline-start: 4px solid #c3ccd4;
 }
 
@@ -477,6 +534,12 @@ button:hover {
   font-size: 0.88rem;
   line-height: 1.7;
   color: #2c3a4a;
+}
+
+/* hidden を付けても display: block が勝ってしまい、補足が開きっぱなしになる。
+   押しても乗せても閉じたところから始まるよう、hidden のときは隠す。 */
+.help__panel[hidden] {
+  display: none;
 }
 
 .prompt {
@@ -587,7 +650,7 @@ button:hover {
   align-items: flex-start;
   gap: 0.5rem;
   margin-block: 1.1rem;
-  padding: 0.7rem 0.9rem;
+  padding: 0.7rem 0.9rem 0.7rem 2.6rem;
   border-inline-start: 4px solid var(--reply-line);
   border-radius: 0.6rem;
   background: var(--reply-bg);
